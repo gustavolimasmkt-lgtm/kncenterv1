@@ -133,6 +133,8 @@ function limparFiltroResumo() {
 
 // ---------- Produtos ----------
 let PRODUTOS_CACHE = [];
+let PRODUTOS_SELECIONADOS = new Set();
+let PRODUTOS_FILTRADOS_ATUAL = [];
 
 function tagClasseStatus(status) {
   return status === 'Disponível' ? 'disp' : (status.toLowerCase().includes('vendido') || status === 'Esgotado' ? 'vendido' : 'outro');
@@ -140,6 +142,9 @@ function tagClasseStatus(status) {
 
 async function carregarProdutos() {
   PRODUTOS_CACHE = await api('GET', '/api/produtos');
+  // tira da selecao produtos que sumiram (ex: excluidos por outra aba)
+  const idsAtuais = new Set(PRODUTOS_CACHE.map(p => p.id));
+  PRODUTOS_SELECIONADOS.forEach(id => { if (!idsAtuais.has(id)) PRODUTOS_SELECIONADOS.delete(id); });
   renderProdutos();
 }
 
@@ -154,11 +159,13 @@ function renderProdutos() {
     if (statusFiltro && tagClasseStatus(p.status) !== statusFiltro) return false;
     return true;
   });
+  PRODUTOS_FILTRADOS_ATUAL = filtrados;
 
   $('filtro-produtos-contador').textContent = `${filtrados.length} de ${PRODUTOS_CACHE.length} produto(s)`;
 
   $('lista-produtos').innerHTML = filtrados.map(p => `
     <tr>
+      <td><input type="checkbox" ${PRODUTOS_SELECIONADOS.has(p.id) ? 'checked' : ''} onchange="alternarSelecaoProduto(${p.id}, this.checked)"></td>
       <td>${p.sku || ''}</td>
       <td>${p.nome}</td>
       <td>${p.categoria}</td>
@@ -171,7 +178,78 @@ function renderProdutos() {
         <button class="btn-mini" onclick="abrirModalProduto(${p.id})">Editar</button>
       </td>
     </tr>
-  `).join('') || `<tr><td colspan="8">${PRODUTOS_CACHE.length ? 'Nenhum produto bate com esse filtro.' : 'Nenhum produto cadastrado ainda.'}</td></tr>`;
+  `).join('') || `<tr><td colspan="9">${PRODUTOS_CACHE.length ? 'Nenhum produto bate com esse filtro.' : 'Nenhum produto cadastrado ainda.'}</td></tr>`;
+
+  const todosMarcados = filtrados.length > 0 && filtrados.every(p => PRODUTOS_SELECIONADOS.has(p.id));
+  $('check-todos-produtos').checked = todosMarcados;
+  atualizarBarraSelecaoProdutos();
+}
+
+function alternarSelecaoProduto(id, marcado) {
+  if (marcado) PRODUTOS_SELECIONADOS.add(id); else PRODUTOS_SELECIONADOS.delete(id);
+  const todosMarcados = PRODUTOS_FILTRADOS_ATUAL.length > 0 && PRODUTOS_FILTRADOS_ATUAL.every(p => PRODUTOS_SELECIONADOS.has(p.id));
+  $('check-todos-produtos').checked = todosMarcados;
+  atualizarBarraSelecaoProdutos();
+}
+
+function alternarTodosProdutos(marcado) {
+  PRODUTOS_FILTRADOS_ATUAL.forEach(p => { if (marcado) PRODUTOS_SELECIONADOS.add(p.id); else PRODUTOS_SELECIONADOS.delete(p.id); });
+  renderProdutos();
+}
+
+function limparSelecaoProdutos() {
+  PRODUTOS_SELECIONADOS.clear();
+  renderProdutos();
+}
+
+function atualizarBarraSelecaoProdutos() {
+  const n = PRODUTOS_SELECIONADOS.size;
+  $('produtos-acoes-massa').classList.toggle('oculto', n === 0);
+  $('produtos-selecionados-contador').textContent = `${n} selecionado(s)`;
+}
+
+async function exportarProdutosSelecionados() {
+  const ids = [...PRODUTOS_SELECIONADOS];
+  if (!ids.length) return;
+  try {
+    const r = await fetch('/api/produtos/exportar', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'same-origin',
+      body: JSON.stringify({ ids })
+    });
+    if (!r.ok) {
+      const erro = await r.json().catch(() => ({}));
+      throw new Error(erro.error || 'Erro ao exportar');
+    }
+    const blob = await r.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `kn-center-produtos-${new Date().toISOString().slice(0, 10)}.xlsx`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  } catch (e) {
+    alert('Erro ao exportar: ' + e.message);
+  }
+}
+
+async function excluirProdutosSelecionados() {
+  const ids = [...PRODUTOS_SELECIONADOS];
+  if (!ids.length) return;
+  if (!confirm(`Excluir ${ids.length} produto(s) selecionado(s)? Produtos com vendas registradas não são excluídos (é preciso excluir as vendas deles primeiro).`)) return;
+  try {
+    const r = await api('POST', '/api/produtos/excluir-em-massa', { ids });
+    PRODUTOS_SELECIONADOS.clear();
+    await carregarProdutos();
+    let msg = `${r.excluidos} produto(s) excluído(s).`;
+    if (r.bloqueados.length) msg += `\n\nNão excluídos (têm vendas registradas): ${r.bloqueados.join(', ')}`;
+    alert(msg);
+  } catch (e) {
+    alert('Erro ao excluir em massa: ' + e.message);
+  }
 }
 
 function atualizarInvestimentosUI() {

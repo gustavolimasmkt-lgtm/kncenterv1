@@ -91,6 +91,7 @@ async function irPara(aba) {
   $('aba-' + aba).classList.remove('oculto');
   if (aba === 'resumo') await carregarResumo();
   if (aba === 'produtos') await carregarProdutos();
+  if (aba === 'vendas') await carregarVendas();
   if (aba === 'disponiveis') await carregarDisponiveis();
   if (aba === 'mensal') await carregarMensal();
   if (aba === 'semanal') await carregarSemanal();
@@ -392,6 +393,7 @@ async function salvarVenda() {
     fecharModal('modal-venda');
     await carregarProdutos();
     if (!$('modal-produto').classList.contains('oculto')) await abrirModalProduto(Number(id));
+    await atualizarVendasSeVisivel();
   } catch (e) { $('venda-erro').textContent = e.message; }
 }
 
@@ -401,6 +403,88 @@ async function excluirVendaExistente(vendaId, produtoId) {
     await api('DELETE', `/api/vendas/${vendaId}`);
     await carregarProdutos();
     await abrirModalProduto(produtoId);
+    await atualizarVendasSeVisivel();
+  } catch (e) {
+    alert('Erro ao excluir venda: ' + e.message);
+  }
+}
+
+// se a aba Vendas estiver aberta, recarrega ela tambem — usado depois de qualquer
+// criacao/edicao/exclusao de venda feita por fora dessa aba (ex: dentro do modal de produto).
+async function atualizarVendasSeVisivel() {
+  if (!$('aba-vendas').classList.contains('oculto')) await carregarVendas();
+}
+
+// ---------- Vendas (modulo global — todas as vendas de todos os produtos) ----------
+let VENDAS_CACHE = [];
+
+async function carregarVendas() {
+  if (!PRODUTOS_CACHE.length) await carregarProdutos(); // abrirModalVenda depende do cache de produtos
+  VENDAS_CACHE = await api('GET', '/api/vendas');
+  renderVendas();
+}
+
+function limparFiltroVendas() {
+  $('vendas-de').value = '';
+  $('vendas-ate').value = '';
+  $('filtro-vendas-busca').value = '';
+  $('filtro-vendas-tipo').value = '';
+  renderVendas();
+}
+
+function renderVendas() {
+  const de = $('vendas-de').value;
+  const ate = $('vendas-ate').value;
+  const busca = ($('filtro-vendas-busca').value || '').trim().toLowerCase();
+  const tipo = $('filtro-vendas-tipo').value;
+
+  const filtradas = VENDAS_CACHE.filter(v => {
+    if (de && v.data_venda < de) return false;
+    if (ate && v.data_venda > ate) return false;
+    if (tipo === 'venda' && v.eh_troca) return false;
+    if (tipo === 'troca' && !v.eh_troca) return false;
+    if (busca) {
+      const alvo = `${v.produto_nome} ${v.produto_sku || ''} ${v.canal_venda || ''}`.toLowerCase();
+      if (!alvo.includes(busca)) return false;
+    }
+    return true;
+  });
+
+  const lucroTotal = filtradas.reduce((s, v) => s + (v.lucro || 0), 0);
+  $('vendas-totais').textContent = `Lucro do período filtrado: ${fmt(lucroTotal)}`;
+  $('filtro-vendas-contador').textContent = `${filtradas.length} de ${VENDAS_CACHE.length} venda(s)`;
+
+  $('lista-vendas').innerHTML = filtradas.map(v => `
+    <tr>
+      <td>${v.data_venda.split('-').reverse().join('/')}</td>
+      <td>${v.produto_sku ? v.produto_sku + ' — ' : ''}${v.produto_nome}</td>
+      <td>${v.quantidade}x</td>
+      <td>${v.eh_troca ? (v.valor_vendido ? fmt(v.valor_vendido) : '—') : fmt(v.valor_vendido)}</td>
+      <td>${fmt(v.custo)}</td>
+      <td class="${v.lucro >= 0 ? 'pos' : 'neg'}">${fmt(v.lucro)}</td>
+      <td>${v.canal_venda || ''}</td>
+      <td>${v.eh_troca ? ('Sim' + (v.produto_destino_nome ? ` → ${v.produto_destino_nome}` : '')) : 'Não'}</td>
+      <td>
+        <button class="btn-mini" onclick="abrirModalVendaStandalone(${v.id})">Editar</button>
+        <button class="btn-mini" onclick="excluirVendaStandalone(${v.id})">Excluir</button>
+      </td>
+    </tr>
+  `).join('') || `<tr><td colspan="9">${VENDAS_CACHE.length ? 'Nenhuma venda bate com esse filtro.' : 'Nenhuma venda registrada ainda.'}</td></tr>`;
+}
+
+function abrirModalVendaStandalone(vendaId) {
+  const venda = VENDAS_CACHE.find(v => v.id === vendaId);
+  if (!venda) return;
+  PRODUTO_EM_EDICAO_VENDAS = [venda];
+  abrirModalVenda(venda.produto_id, vendaId);
+}
+
+async function excluirVendaStandalone(vendaId) {
+  if (!confirm('Excluir essa venda? Isso devolve a quantidade pro estoque.')) return;
+  try {
+    await api('DELETE', `/api/vendas/${vendaId}`);
+    await carregarProdutos();
+    await carregarVendas();
   } catch (e) {
     alert('Erro ao excluir venda: ' + e.message);
   }

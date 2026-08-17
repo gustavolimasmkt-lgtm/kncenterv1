@@ -61,6 +61,12 @@ h2 { margin: 0 0 14px; }
 .card .valor.pos { color: #1a8f4c; }
 .card .valor.neg { color: #c73333; }
 
+/* ---- Filtros ---- */
+.filtros { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 12px; }
+.filtros input, .filtros select { padding: 9px 10px; min-height: 40px; border: 1px solid #d9dce1; border-radius: 8px; background: #fff; }
+.filtros input[type="text"] { flex: 1 1 220px; min-width: 160px; }
+.filtro-contador { font-size: 13px; color: #777; margin-left: auto; white-space: nowrap; }
+
 /* ---- Table ---- */
 .tabela { width: 100%; border-collapse: collapse; background: #fff; border-radius: 12px; overflow: hidden; box-shadow: 0 1px 4px rgba(0,0,0,.06); }
 .tabela th { text-align: left; background: #f0f1f4; padding: 10px 12px; font-size: 13px; color: #555; }

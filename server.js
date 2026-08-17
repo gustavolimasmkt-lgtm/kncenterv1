@@ -582,21 +582,30 @@ app.put('/api/produtos/:id', (req, res) => {
 // Exclui o produto e tudo que depende dele (fotos em disco, linhas de investimento, linhas de
 // foto) — o SQLite aqui nao roda com PRAGMA foreign_keys ligado, entao ON DELETE CASCADE do
 // schema nao e aplicado sozinho; precisa limpar na mao pra nao deixar linha orfa no banco.
-function excluirProdutoDb(produto, usuarioId) {
+// Se forcarComVendas, apaga tambem as vendas desse produto (historico de vendas some junto —
+// os totais de lucro mensal/semanal ja fechados vao mudar) e desvincula qualquer venda de OUTRO
+// produto que tenha esse aqui como destino de troca (fica sem destino, mas nao quebra).
+function excluirProdutoDb(produto, usuarioId, forcarComVendas) {
+  if (forcarComVendas) {
+    db.prepare('DELETE FROM vendas WHERE produto_id=?').run(produto.id);
+    db.prepare('UPDATE vendas SET produto_destino_id=NULL WHERE produto_destino_id=?').run(produto.id);
+  }
   const fotos = db.prepare('SELECT arquivo FROM produto_fotos WHERE produto_id=?').all(produto.id);
   for (const f of fotos) { try { fs.unlinkSync(path.join(UPLOADS_DIR, f.arquivo)); } catch (e) {} }
   db.prepare('DELETE FROM produto_fotos WHERE produto_id=?').run(produto.id);
   db.prepare('DELETE FROM produto_investimentos WHERE produto_id=?').run(produto.id);
   db.prepare('DELETE FROM produtos WHERE id=?').run(produto.id);
   db.prepare('INSERT INTO produtos_auditoria (produto_id,usuario_id,acao,dados_antes) VALUES (?,?,?,?)')
-    .run(produto.id, usuarioId, 'excluido', JSON.stringify(produto));
+    .run(produto.id, usuarioId, forcarComVendas ? 'excluido_forcado_com_vendas' : 'excluido', JSON.stringify(produto));
 }
 
 app.delete('/api/produtos/:id', (req, res) => {
   const antes = db.prepare('SELECT * FROM produtos WHERE id=?').get(req.params.id);
   if (!antes) return err(res, 'Produto nao encontrado', 404);
-  if (antes.quantidade_vendida > 0) return err(res, 'Nao e possivel excluir produto com vendas registradas. Exclua as vendas primeiro.');
-  excluirProdutoDb(antes, req.user.id);
+  const forcar = !!(req.body && req.body.forcar);
+  if (antes.quantidade_vendida > 0 && !forcar)
+    return err(res, 'Produto tem vendas registradas. Marque a opcao de apagar mesmo com vendas pra excluir junto com o historico.');
+  excluirProdutoDb(antes, req.user.id, forcar);
   ok(res, { id: req.params.id });
 });
 
@@ -649,14 +658,15 @@ app.post('/api/produtos/excluir-em-massa', (req, res) => {
   try {
     const ids = Array.isArray(req.body.ids) ? req.body.ids.map(Number).filter(Boolean) : [];
     if (!ids.length) return err(res, 'Nenhum produto selecionado');
+    const forcar = !!req.body.forcar;
 
     let excluidos = 0;
     const bloqueados = [];
     for (const id of ids) {
       const produto = db.prepare('SELECT * FROM produtos WHERE id=?').get(id);
       if (!produto) continue;
-      if (produto.quantidade_vendida > 0) { bloqueados.push(produto.sku || produto.nome); continue; }
-      excluirProdutoDb(produto, req.user.id);
+      if (produto.quantidade_vendida > 0 && !forcar) { bloqueados.push({ id: produto.id, label: produto.sku || produto.nome }); continue; }
+      excluirProdutoDb(produto, req.user.id, forcar);
       excluidos++;
     }
     ok(res, { excluidos, bloqueados });

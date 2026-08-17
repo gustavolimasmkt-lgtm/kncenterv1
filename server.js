@@ -123,11 +123,13 @@ db.exec(`
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     produto_id INTEGER NOT NULL REFERENCES produtos(id) ON DELETE CASCADE,
     quantidade INTEGER NOT NULL DEFAULT 1,
-    valor_vendido REAL NOT NULL,
+    valor_vendido REAL NOT NULL DEFAULT 0,
     canal_venda TEXT,
     data_venda TEXT NOT NULL,
     obs TEXT,
     usuario_id INTEGER REFERENCES usuarios(id),
+    eh_troca INTEGER DEFAULT 0,
+    produto_destino_id INTEGER REFERENCES produtos(id),
     criado_em TEXT DEFAULT (datetime('now'))
   );
 
@@ -147,6 +149,14 @@ db.exec(`
     valor TEXT
   );
 `);
+
+// migracao leve: colunas novas em bancos que ja existiam antes dessa versao
+for (const col of [
+  "ALTER TABLE vendas ADD COLUMN eh_troca INTEGER DEFAULT 0",
+  "ALTER TABLE vendas ADD COLUMN produto_destino_id INTEGER REFERENCES produtos(id)",
+]) {
+  try { db.exec(col); } catch (e) { /* coluna ja existe, ignora */ }
+}
 
 // seed: sócios padrão (extensível pela UI) e meta semanal padrão
 if (db.prepare('SELECT COUNT(*) as n FROM socios').get().n === 0) {
@@ -321,9 +331,12 @@ function vendasDoProduto(produtoId) {
 // Para uma venda: lucro = valor_vendido - (custo_unitario * quantidade vendida nessa venda).
 // O lucro e sempre dividido em partes iguais entre os socios que investiram no produto
 // (replica a regra usada manualmente na planilha: lucro/2 mesmo quando o aporte nao foi 50/50).
+// Quando e troca (eh_troca=1), nao existe valor em dinheiro real: o custo do produto trocado
+// e transferido pro produto recebido (ver rota /vender), entao essa venda em si nao gera lucro
+// nem prejuizo aqui — o lucro so aparece de verdade quando o produto recebido for vendido.
 function calcularVenda(produto, venda) {
   const custo = custoUnitario(produto) * venda.quantidade;
-  const lucro = venda.valor_vendido - custo;
+  const lucro = venda.eh_troca ? 0 : (venda.valor_vendido - custo);
   return { custo, lucro };
 }
 
@@ -478,7 +491,8 @@ app.post('/api/produtos', (req, res) => {
   const b = req.body;
   try {
     if (!b.nome) return err(res, 'Nome obrigatorio');
-    if (!b.custo_total || Number(b.custo_total) <= 0) return err(res, 'Custo total obrigatorio');
+    if (b.custo_total === undefined || b.custo_total === null || b.custo_total === '' || Number(b.custo_total) < 0)
+      return err(res, 'Custo total obrigatorio (pode ser 0 se o produto foi recebido só por troca, sem gastar dinheiro ainda)');
     const qtd = Math.max(1, parseInt(b.quantidade_total, 10) || 1);
     if (b.imei_serial && b.imei_serial.trim()) {
       const dup = db.prepare('SELECT id, nome FROM produtos WHERE UPPER(imei_serial) = UPPER(?)').get(b.imei_serial.trim());
@@ -508,7 +522,8 @@ app.put('/api/produtos/:id', (req, res) => {
     const antes = db.prepare('SELECT * FROM produtos WHERE id=?').get(req.params.id);
     if (!antes) return err(res, 'Produto nao encontrado', 404);
     if (!b.nome) return err(res, 'Nome obrigatorio');
-    if (!b.custo_total || Number(b.custo_total) <= 0) return err(res, 'Custo total obrigatorio');
+    if (b.custo_total === undefined || b.custo_total === null || b.custo_total === '' || Number(b.custo_total) < 0)
+      return err(res, 'Custo total obrigatorio (pode ser 0 se o produto foi recebido só por troca, sem gastar dinheiro ainda)');
     const qtd = Math.max(antes.quantidade_vendida, parseInt(b.quantidade_total, 10) || 1);
     if (b.imei_serial && b.imei_serial.trim()) {
       const dup = db.prepare('SELECT id, nome FROM produtos WHERE UPPER(imei_serial) = UPPER(?) AND id != ?').get(b.imei_serial.trim(), req.params.id);
@@ -575,6 +590,9 @@ app.delete('/api/fotos/:id', (req, res) => {
 });
 
 // ---------- VENDAS ----------
+// Registrar uma venda normal (com valor em dinheiro) ou uma troca (sem valor — o custo do
+// produto que saiu e transferido pro produto recebido em troca, e o lucro so aparece de
+// verdade quando esse produto recebido for vendido por dinheiro de verdade).
 app.post('/api/produtos/:id/vender', (req, res) => {
   try {
     const produto = db.prepare('SELECT * FROM produtos WHERE id=?').get(req.params.id);
@@ -583,17 +601,53 @@ app.post('/api/produtos/:id/vender', (req, res) => {
     const quantidade = Math.max(1, parseInt(b.quantidade, 10) || 1);
     const restante = produto.quantidade_total - produto.quantidade_vendida;
     if (quantidade > restante) return err(res, `So restam ${restante} unidade(s) em estoque desse produto.`);
-    if (!b.valor_vendido || Number(b.valor_vendido) <= 0) return err(res, 'Valor vendido obrigatorio');
+    const ehTroca = !!b.eh_troca;
+    if (!ehTroca && (!b.valor_vendido || Number(b.valor_vendido) <= 0)) return err(res, 'Valor vendido obrigatorio');
     if (!b.data_venda) return err(res, 'Data da venda obrigatoria');
 
-    const r = db.prepare(`INSERT INTO vendas (produto_id,quantidade,valor_vendido,canal_venda,data_venda,obs,usuario_id)
-      VALUES (?,?,?,?,?,?,?)`)
-      .run(produto.id, quantidade, Number(b.valor_vendido), b.canal_venda || '', b.data_venda, b.obs || '', req.user.id);
+    let produtoDestino = null;
+    if (ehTroca && b.produto_destino_id) {
+      produtoDestino = db.prepare('SELECT * FROM produtos WHERE id=?').get(b.produto_destino_id);
+      if (!produtoDestino) return err(res, 'Produto de destino nao encontrado');
+      if (produtoDestino.id === produto.id) return err(res, 'O produto de destino precisa ser diferente do produto trocado');
+    }
+
+    const valorVendido = ehTroca ? (Number(b.valor_vendido) || 0) : Number(b.valor_vendido);
+
+    const r = db.prepare(`INSERT INTO vendas (produto_id,quantidade,valor_vendido,canal_venda,data_venda,obs,usuario_id,eh_troca,produto_destino_id)
+      VALUES (?,?,?,?,?,?,?,?,?)`)
+      .run(produto.id, quantidade, valorVendido, b.canal_venda || (ehTroca ? 'Troca' : ''), b.data_venda, b.obs || '',
+           req.user.id, ehTroca ? 1 : 0, produtoDestino ? produtoDestino.id : null);
     db.prepare('UPDATE produtos SET quantidade_vendida = quantidade_vendida + ? WHERE id=?').run(quantidade, produto.id);
+
+    if (produtoDestino) {
+      const custoUnitOrigem = produto.quantidade_total > 0 ? produto.custo_total / produto.quantidade_total : 0;
+      const custoTransferido = Math.round(custoUnitOrigem * quantidade * 100) / 100;
+      const fracao = produto.quantidade_total > 0 ? quantidade / produto.quantidade_total : 0;
+
+      db.prepare('UPDATE produtos SET custo_total = custo_total - ? WHERE id=?').run(custoTransferido, produto.id);
+      db.prepare('UPDATE produtos SET custo_total = custo_total + ? WHERE id=?').run(custoTransferido, produtoDestino.id);
+
+      const investOrigem = db.prepare('SELECT * FROM produto_investimentos WHERE produto_id=?').all(produto.id);
+      for (const inv of investOrigem) {
+        const parte = Math.round(inv.valor * fracao * 100) / 100;
+        if (parte <= 0) continue;
+        const novoValorOrigem = Math.round((inv.valor - parte) * 100) / 100;
+        if (novoValorOrigem <= 0.01) db.prepare('DELETE FROM produto_investimentos WHERE id=?').run(inv.id);
+        else db.prepare('UPDATE produto_investimentos SET valor=? WHERE id=?').run(novoValorOrigem, inv.id);
+
+        const existenteDestino = db.prepare('SELECT * FROM produto_investimentos WHERE produto_id=? AND socio_id=?').get(produtoDestino.id, inv.socio_id);
+        if (existenteDestino) db.prepare('UPDATE produto_investimentos SET valor=valor+? WHERE id=?').run(parte, existenteDestino.id);
+        else db.prepare('INSERT INTO produto_investimentos (produto_id,socio_id,valor) VALUES (?,?,?)').run(produtoDestino.id, inv.socio_id, parte);
+      }
+
+      db.prepare('INSERT INTO produtos_auditoria (produto_id,usuario_id,acao,dados_depois) VALUES (?,?,?,?)')
+        .run(produtoDestino.id, req.user.id, 'recebeu_custo_de_troca', JSON.stringify({ de_produto: produto.sku, valor_transferido: custoTransferido }));
+    }
 
     const depois = db.prepare('SELECT * FROM produtos WHERE id=?').get(produto.id);
     db.prepare('INSERT INTO produtos_auditoria (produto_id,usuario_id,acao,dados_antes,dados_depois) VALUES (?,?,?,?,?)')
-      .run(produto.id, req.user.id, 'venda_registrada', JSON.stringify(produto), JSON.stringify({ venda_id: r.lastInsertRowid, ...b }));
+      .run(produto.id, req.user.id, ehTroca ? 'troca_registrada' : 'venda_registrada', JSON.stringify(produto), JSON.stringify({ venda_id: r.lastInsertRowid, ...b }));
 
     ok(res, retratoProduto(depois));
   } catch (e) {
@@ -604,6 +658,7 @@ app.post('/api/produtos/:id/vender', (req, res) => {
 app.delete('/api/vendas/:id', (req, res) => {
   const venda = db.prepare('SELECT * FROM vendas WHERE id=?').get(req.params.id);
   if (!venda) return err(res, 'Venda nao encontrada', 404);
+  if (venda.eh_troca) return err(res, 'Essa venda foi uma troca com transferencia de custo pra outro produto — excluir aqui nao desfaz a transferencia. Ajuste os dois produtos manualmente (custo e investimentos) se precisar desfazer.');
   db.prepare('UPDATE produtos SET quantidade_vendida = quantidade_vendida - ? WHERE id=?').run(venda.quantidade, venda.produto_id);
   db.prepare('DELETE FROM vendas WHERE id=?').run(req.params.id);
   db.prepare('INSERT INTO produtos_auditoria (produto_id,usuario_id,acao,dados_antes) VALUES (?,?,?,?)')
@@ -650,31 +705,48 @@ function todosProdutosComRetrato() {
   return db.prepare('SELECT * FROM produtos').all().map(retratoProduto);
 }
 
-app.get('/api/dashboard/resumo', (_, res) => {
+// Resumo aceita ?de=YYYY-MM-DD&ate=YYYY-MM-DD (opcional, os dois independentes).
+// Estoque/investido/estimativas em aberto sempre refletem o estado ATUAL (nao faz sentido
+// filtrar por data — sao uma fotografia de agora). Ja o que e "fluxo" (vendas realizadas,
+// lucro, arrecadado, lancamentos) e filtrado pelo periodo escolhido.
+app.get('/api/dashboard/resumo', (req, res) => {
+  const { de, ate } = req.query;
+  const dentroPeriodo = (data) => (!de || data >= de) && (!ate || data <= ate);
+
   const produtos = todosProdutosComRetrato();
   const socios = db.prepare('SELECT * FROM socios WHERE ativo=1 ORDER BY nome').all();
 
   const totalInvestido = produtos.reduce((s, p) => s + p.total_investido, 0);
   const produtosEmAberto = produtos.filter(p => p.quantidade_restante > 0).length;
   const produtosEsgotados = produtos.filter(p => p.quantidade_restante <= 0).length;
-  const totalArrecadado = produtos.reduce((s, p) => s + p.arrecadado_total, 0);
-  const lucroRealTotal = produtos.reduce((s, p) => s + p.lucro_total_realizado, 0);
   const lucroMinAberto = produtos.reduce((s, p) => s + (p.lucro_min_estimado_aberto || 0), 0);
   const lucroMaxAberto = produtos.reduce((s, p) => s + (p.lucro_max_estimado_aberto || 0), 0);
 
-  const porSocio = socios.map(s => {
-    let investido = 0, lucro = 0;
-    produtos.forEach(p => {
-      const linha = p.por_socio.find(x => x.socio_id === s.id);
-      if (linha) { investido += linha.investido; lucro += linha.lucro; }
+  const porSocioMap = {};
+  socios.forEach(s => porSocioMap[s.id] = { socio_id: s.id, socio_nome: s.nome, investido: 0, lucro: 0 });
+
+  let totalArrecadado = 0, lucroRealTotal = 0;
+  produtos.forEach(p => {
+    p.por_socio.forEach(linha => {
+      if (porSocioMap[linha.socio_id]) porSocioMap[linha.socio_id].investido += linha.investido;
     });
-    return { socio_id: s.id, socio_nome: s.nome, investido, lucro };
+    const investimentos = investimentosDoProduto(p.id);
+    const nSocios = investimentos.length || 1;
+    p.vendas.forEach(v => {
+      if (!dentroPeriodo(v.data_venda)) return;
+      totalArrecadado += v.valor_vendido;
+      lucroRealTotal += v.lucro;
+      investimentos.forEach(inv => {
+        if (porSocioMap[inv.socio_id]) porSocioMap[inv.socio_id].lucro += v.lucro / nSocios;
+      });
+    });
   });
 
-  const lancamentos = db.prepare('SELECT * FROM lancamentos').all();
+  const lancamentos = db.prepare('SELECT * FROM lancamentos').all().filter(l => dentroPeriodo(l.data));
   const saldoLancamentos = lancamentos.reduce((s, l) => s + (l.tipo === 'entrada' ? l.valor : -l.valor), 0);
 
   ok(res, {
+    periodo_filtrado: !!(de || ate),
     total_investido: totalInvestido,
     produtos_em_aberto: produtosEmAberto,
     produtos_esgotados: produtosEsgotados,
@@ -683,7 +755,7 @@ app.get('/api/dashboard/resumo', (_, res) => {
     lucro_min_estimado_aberto: lucroMinAberto,
     lucro_max_estimado_aberto: lucroMaxAberto,
     saldo_lancamentos_gerais: saldoLancamentos,
-    por_socio: porSocio
+    por_socio: Object.values(porSocioMap)
   });
 });
 

@@ -120,10 +120,30 @@ async function carregarResumo() {
 // ---------- Produtos ----------
 let PRODUTOS_CACHE = [];
 
+function tagClasseStatus(status) {
+  return status === 'Disponível' ? 'disp' : (status.toLowerCase().includes('vendido') || status === 'Esgotado' ? 'vendido' : 'outro');
+}
+
 async function carregarProdutos() {
   PRODUTOS_CACHE = await api('GET', '/api/produtos');
-  const tagClasse = (status) => status === 'Disponível' ? 'disp' : (status.toLowerCase().includes('vendido') || status === 'Esgotado' ? 'vendido' : 'outro');
-  $('lista-produtos').innerHTML = PRODUTOS_CACHE.map(p => `
+  renderProdutos();
+}
+
+function renderProdutos() {
+  const busca = ($('filtro-produtos-busca').value || '').trim().toLowerCase();
+  const categoria = $('filtro-produtos-categoria').value;
+  const statusFiltro = $('filtro-produtos-status').value;
+
+  const filtrados = PRODUTOS_CACHE.filter(p => {
+    if (busca && !(p.nome.toLowerCase().includes(busca) || (p.sku || '').toLowerCase().includes(busca))) return false;
+    if (categoria && p.categoria !== categoria) return false;
+    if (statusFiltro && tagClasseStatus(p.status) !== statusFiltro) return false;
+    return true;
+  });
+
+  $('filtro-produtos-contador').textContent = `${filtrados.length} de ${PRODUTOS_CACHE.length} produto(s)`;
+
+  $('lista-produtos').innerHTML = filtrados.map(p => `
     <tr>
       <td>${p.sku || ''}</td>
       <td>${p.nome}</td>
@@ -131,13 +151,13 @@ async function carregarProdutos() {
       <td>${p.quantidade_vendida}/${p.quantidade_total}</td>
       <td>${fmt(p.custo_unitario)}</td>
       <td>${fmt(p.preco_anuncio)}</td>
-      <td><span class="tag ${tagClasse(p.status)}">${p.status}</span></td>
+      <td><span class="tag ${tagClasseStatus(p.status)}">${p.status}</span></td>
       <td>
         ${p.quantidade_restante > 0 ? `<button class="btn-mini venda" onclick="abrirModalVenda(${p.id})">Vender</button>` : ''}
         <button class="btn-mini" onclick="abrirModalProduto(${p.id})">Editar</button>
       </td>
     </tr>
-  `).join('') || '<tr><td colspan="8">Nenhum produto cadastrado ainda.</td></tr>';
+  `).join('') || `<tr><td colspan="8">${PRODUTOS_CACHE.length ? 'Nenhum produto bate com esse filtro.' : 'Nenhum produto cadastrado ainda.'}</td></tr>`;
 }
 
 function atualizarInvestimentosUI() {
@@ -377,9 +397,32 @@ async function carregarExtrato() {
 }
 
 // ---------- Lançamentos ----------
+let LANCAMENTOS_CACHE = [];
+
 async function carregarLancamentos() {
-  const lista = await api('GET', '/api/lancamentos');
-  $('lista-lancamentos').innerHTML = lista.map(l => `
+  LANCAMENTOS_CACHE = await api('GET', '/api/lancamentos');
+  const sel = $('filtro-lanc-socio');
+  const atual = sel.value;
+  sel.innerHTML = '<option value="">Todas as contas</option><option value="loja">Loja (geral)</option>' +
+    SOCIOS.map(s => `<option value="${s.id}">${s.nome}</option>`).join('');
+  sel.value = atual;
+  renderLancamentos();
+}
+
+function renderLancamentos() {
+  const tipo = $('filtro-lanc-tipo').value;
+  const socio = $('filtro-lanc-socio').value;
+  const mes = $('filtro-lanc-mes').value; // formato YYYY-MM
+
+  const filtrados = LANCAMENTOS_CACHE.filter(l => {
+    if (tipo && l.tipo !== tipo) return false;
+    if (socio === 'loja' && l.socio_nome) return false;
+    if (socio && socio !== 'loja' && String(l.socio_id) !== socio) return false;
+    if (mes && !l.data.startsWith(mes)) return false;
+    return true;
+  });
+
+  $('lista-lancamentos').innerHTML = filtrados.map(l => `
     <tr>
       <td>${l.data.split('-').reverse().join('/')}</td>
       <td>${l.tipo === 'entrada' ? 'Entrada' : 'Saída'}</td>
@@ -388,7 +431,7 @@ async function carregarLancamentos() {
       <td class="${l.tipo === 'entrada' ? 'valor pos' : 'valor neg'}">${fmt(l.valor)}</td>
       <td><button class="btn-mini" onclick="excluirLancamento(${l.id})">Excluir</button></td>
     </tr>
-  `).join('') || '<tr><td colspan="6">Nenhum lançamento ainda.</td></tr>';
+  `).join('') || `<tr><td colspan="6">${LANCAMENTOS_CACHE.length ? 'Nenhum lançamento bate com esse filtro.' : 'Nenhum lançamento ainda.'}</td></tr>`;
 }
 
 function abrirModalLancamento() {

@@ -302,9 +302,10 @@ function abrirModalVenda(id) {
 
 function alternarTroca() {
   const eh = $('venda-eh-troca').checked;
-  $('venda-valor-box').classList.toggle('oculto', eh);
   $('venda-destino-box').classList.toggle('oculto', !eh);
-  if (eh) $('venda-valor').value = '';
+  $('venda-valor-label').textContent = eh
+    ? 'Entrou dinheiro junto com a troca? (R$) — opcional, deixe em branco se foi troca direta'
+    : 'Valor vendido (R$)';
 }
 
 async function salvarVenda() {

@@ -97,6 +97,21 @@
         </div>
       </div>
       <div id="import-resultado" class="oculto bloco"></div>
+      <div class="filtros">
+        <input type="text" id="filtro-produtos-busca" placeholder="🔎 Buscar por nome ou SKU..." oninput="renderProdutos()">
+        <select id="filtro-produtos-categoria" onchange="renderProdutos()">
+          <option value="">Todas categorias</option>
+          <option>iPhone</option><option>Android</option><option>TV</option>
+          <option>Acessório</option><option>Console/Videogame</option><option>Outro</option>
+        </select>
+        <select id="filtro-produtos-status" onchange="renderProdutos()">
+          <option value="">Todos status</option>
+          <option value="disp">Disponível</option>
+          <option value="vendido">Vendido / Esgotado</option>
+          <option value="outro">Outros (troca, etc.)</option>
+        </select>
+        <span id="filtro-produtos-contador" class="filtro-contador"></span>
+      </div>
       <table class="tabela">
         <thead><tr>
           <th>SKU</th><th>Produto</th><th>Categoria</th><th>Estoque</th><th>Custo unit.</th>
@@ -142,6 +157,15 @@
       <div class="aba-header">
         <h2>Lançamentos Gerais</h2>
         <button class="btn-primario" onclick="abrirModalLancamento()">+ Novo lançamento</button>
+      </div>
+      <div class="filtros">
+        <select id="filtro-lanc-tipo" onchange="renderLancamentos()">
+          <option value="">Entradas e saídas</option>
+          <option value="entrada">Só entradas</option>
+          <option value="saida">Só saídas</option>
+        </select>
+        <select id="filtro-lanc-socio" onchange="renderLancamentos()"><option value="">Todas as contas</option></select>
+        <input type="month" id="filtro-lanc-mes" onchange="renderLancamentos()">
       </div>
       <table class="tabela">
         <thead><tr><th>Data</th><th>Tipo</th><th>Descrição</th><th>Sócio/Conta</th><th>Valor</th><th></th></tr></thead>

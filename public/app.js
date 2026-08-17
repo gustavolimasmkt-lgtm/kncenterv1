@@ -207,11 +207,14 @@ function coletarInvestimentos() {
   return arr;
 }
 
+let PRODUTO_EM_EDICAO_VENDAS = [];
+
 async function abrirModalProduto(id) {
   $('prod-erro').textContent = '';
   $('prod-id').value = id || '';
   if (id) {
     const p = await api('GET', '/api/produtos/' + id);
+    PRODUTO_EM_EDICAO_VENDAS = p.vendas || [];
     $('modal-produto-titulo').textContent = 'Editar produto — ' + p.sku;
     $('prod-nome').value = p.nome;
     $('prod-categoria').value = p.categoria;
@@ -232,7 +235,23 @@ async function abrirModalProduto(id) {
     });
     conferirSomaInvestimentos();
     $('btn-excluir-produto').classList.remove('oculto');
+
+    $('prod-vendas-box').classList.remove('oculto');
+    $('lista-vendas-produto').innerHTML = PRODUTO_EM_EDICAO_VENDAS.map(v => `
+      <tr>
+        <td>${v.data_venda.split('-').reverse().join('/')}</td>
+        <td>${v.quantidade}x</td>
+        <td>${v.eh_troca ? 'Troca' : fmt(v.valor_vendido)}</td>
+        <td class="${v.lucro >= 0 ? 'pos' : 'neg'}">${fmt(v.lucro)}</td>
+        <td>${v.canal_venda || ''}</td>
+        <td>
+          <button class="btn-mini" onclick="abrirModalVenda(${p.id}, ${v.id})">Editar</button>
+          <button class="btn-mini" onclick="excluirVendaExistente(${v.id}, ${p.id})">Excluir</button>
+        </td>
+      </tr>
+    `).join('') || '<tr><td colspan="6">Nenhuma venda registrada ainda.</td></tr>';
   } else {
+    PRODUTO_EM_EDICAO_VENDAS = [];
     $('modal-produto-titulo').textContent = 'Novo produto';
     ['prod-nome','prod-sku','prod-condicao','prod-imei','prod-preco-anuncio','prod-lucro-minimo','prod-status-manual','prod-obs'].forEach(f => $(f).value = '');
     $('prod-qtd').value = 1;
@@ -240,6 +259,7 @@ async function abrirModalProduto(id) {
     $('prod-data-compra').value = new Date().toISOString().slice(0, 10);
     atualizarInvestimentosUI();
     $('btn-excluir-produto').classList.add('oculto');
+    $('prod-vendas-box').classList.add('oculto');
   }
   $('modal-produto').classList.remove('oculto');
 }
@@ -281,14 +301,19 @@ async function excluirProduto() {
 }
 
 // ---------- Venda ----------
-function abrirModalVenda(id) {
+function abrirModalVenda(id, vendaId) {
   const p = PRODUTOS_CACHE.find(x => x.id === id);
   $('venda-erro').textContent = '';
   $('venda-produto-id').value = id;
+  $('venda-id').value = vendaId || '';
   $('venda-produto-nome').textContent = `${p.nome} (restam ${p.quantidade_restante})`;
   $('venda-qtd').value = 1;
   $('venda-qtd').max = p.quantidade_restante;
   $('venda-eh-troca').checked = false;
+  $('venda-eh-troca').disabled = false;
+  $('venda-qtd').disabled = false;
+  $('venda-valor').disabled = false;
+  $('venda-destino').disabled = false;
   $('venda-valor').value = '';
   $('venda-canal').value = '';
   $('venda-data').value = new Date().toISOString().slice(0, 10);
@@ -297,6 +322,31 @@ function abrirModalVenda(id) {
   selDestino.innerHTML = '<option value="">— nenhum (só dar baixa, sem transferir custo) —</option>' +
     PRODUTOS_CACHE.filter(x => x.id !== id).map(x => `<option value="${x.id}">${x.sku ? x.sku + ' — ' : ''}${x.nome}</option>`).join('');
   alternarTroca();
+  $('venda-aviso-troca-travada').classList.add('oculto');
+
+  const venda = vendaId ? PRODUTO_EM_EDICAO_VENDAS.find(v => v.id === vendaId) : null;
+  if (venda) {
+    $('modal-venda-titulo').textContent = 'Editar venda';
+    $('venda-qtd').value = venda.quantidade;
+    $('venda-eh-troca').checked = !!venda.eh_troca;
+    $('venda-valor').value = venda.valor_vendido || '';
+    $('venda-canal').value = venda.canal_venda || '';
+    $('venda-data').value = venda.data_venda || '';
+    $('venda-obs').value = venda.obs || '';
+    selDestino.value = venda.produto_destino_id || '';
+    alternarTroca();
+
+    const travada = !!(venda.eh_troca && venda.produto_destino_id);
+    if (travada) {
+      $('venda-aviso-troca-travada').classList.remove('oculto');
+      $('venda-qtd').disabled = true;
+      $('venda-eh-troca').disabled = true;
+      $('venda-destino').disabled = true;
+    }
+  } else {
+    $('modal-venda-titulo').textContent = 'Registrar venda';
+  }
+
   $('modal-venda').classList.remove('oculto');
 }
 
@@ -311,20 +361,49 @@ function alternarTroca() {
 async function salvarVenda() {
   $('venda-erro').textContent = '';
   const id = $('venda-produto-id').value;
+  const vendaId = $('venda-id').value;
   const ehTroca = $('venda-eh-troca').checked;
   try {
-    await api('POST', `/api/produtos/${id}/vender`, {
-      quantidade: $('venda-qtd').value,
-      valor_vendido: $('venda-valor').value || 0,
-      canal_venda: $('venda-canal').value,
-      data_venda: $('venda-data').value,
-      obs: $('venda-obs').value,
-      eh_troca: ehTroca,
-      produto_destino_id: ehTroca ? ($('venda-destino').value || null) : null
-    });
+    if (vendaId) {
+      const vendaOriginal = PRODUTO_EM_EDICAO_VENDAS.find(v => v.id === Number(vendaId));
+      const travada = !!(vendaOriginal && vendaOriginal.eh_troca && vendaOriginal.produto_destino_id);
+      const payload = travada
+        ? { canal_venda: $('venda-canal').value, data_venda: $('venda-data').value, obs: $('venda-obs').value }
+        : {
+            quantidade: $('venda-qtd').value,
+            valor_vendido: $('venda-valor').value || 0,
+            canal_venda: $('venda-canal').value,
+            data_venda: $('venda-data').value,
+            obs: $('venda-obs').value,
+            eh_troca: ehTroca,
+          };
+      await api('PUT', `/api/vendas/${vendaId}`, payload);
+    } else {
+      await api('POST', `/api/produtos/${id}/vender`, {
+        quantidade: $('venda-qtd').value,
+        valor_vendido: $('venda-valor').value || 0,
+        canal_venda: $('venda-canal').value,
+        data_venda: $('venda-data').value,
+        obs: $('venda-obs').value,
+        eh_troca: ehTroca,
+        produto_destino_id: ehTroca ? ($('venda-destino').value || null) : null
+      });
+    }
     fecharModal('modal-venda');
     await carregarProdutos();
+    if (!$('modal-produto').classList.contains('oculto')) await abrirModalProduto(Number(id));
   } catch (e) { $('venda-erro').textContent = e.message; }
+}
+
+async function excluirVendaExistente(vendaId, produtoId) {
+  if (!confirm('Excluir essa venda? Isso devolve a quantidade pro estoque.')) return;
+  try {
+    await api('DELETE', `/api/vendas/${vendaId}`);
+    await carregarProdutos();
+    await abrirModalProduto(produtoId);
+  } catch (e) {
+    alert('Erro ao excluir venda: ' + e.message);
+  }
 }
 
 async function importarPlanilha(arquivo) {

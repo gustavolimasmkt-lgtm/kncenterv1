@@ -239,13 +239,29 @@ async function exportarProdutosSelecionados() {
 async function excluirProdutosSelecionados() {
   const ids = [...PRODUTOS_SELECIONADOS];
   if (!ids.length) return;
-  if (!confirm(`Excluir ${ids.length} produto(s) selecionado(s)? Produtos com vendas registradas não são excluídos (é preciso excluir as vendas deles primeiro).`)) return;
+  if (!confirm(`Excluir ${ids.length} produto(s) selecionado(s)?`)) return;
   try {
     const r = await api('POST', '/api/produtos/excluir-em-massa', { ids });
+    let msg = `${r.excluidos} produto(s) excluído(s).`;
+
+    if (r.bloqueados.length) {
+      const nomes = r.bloqueados.map(b => b.label).join(', ');
+      const querForcar = confirm(
+        `${r.bloqueados.length} produto(s) não foram excluídos porque têm vendas registradas: ${nomes}.\n\n` +
+        `Apagar esses também, junto com o histórico de vendas deles? Isso muda os totais de lucro mensal/semanal já fechados.`
+      );
+      if (querForcar) {
+        const idsForcar = r.bloqueados.map(b => b.id);
+        const r2 = await api('POST', '/api/produtos/excluir-em-massa', { ids: idsForcar, forcar: true });
+        msg += ` Mais ${r2.excluidos} excluído(s) à força (com histórico de vendas).`;
+      } else {
+        msg += `\nNão excluídos: ${nomes}`;
+      }
+    }
+
     PRODUTOS_SELECIONADOS.clear();
     await carregarProdutos();
-    let msg = `${r.excluidos} produto(s) excluído(s).`;
-    if (r.bloqueados.length) msg += `\n\nNão excluídos (têm vendas registradas): ${r.bloqueados.join(', ')}`;
+    await atualizarVendasSeVisivel();
     alert(msg);
   } catch (e) {
     alert('Erro ao excluir em massa: ' + e.message);
@@ -376,7 +392,18 @@ async function excluirProduto() {
     await api('DELETE', '/api/produtos/' + id);
     fecharModal('modal-produto');
     await carregarProdutos();
-  } catch (e) { $('prod-erro').textContent = e.message; }
+  } catch (e) {
+    if (/vendas registradas/i.test(e.message)) {
+      if (!confirm(`${e.message}\n\nApagar mesmo assim, junto com o histórico de vendas desse produto? Isso muda os totais de lucro mensal/semanal já fechados que incluíam essas vendas.`)) return;
+      try {
+        await api('DELETE', '/api/produtos/' + id, { forcar: true });
+        fecharModal('modal-produto');
+        await carregarProdutos();
+      } catch (e2) { $('prod-erro').textContent = e2.message; }
+      return;
+    }
+    $('prod-erro').textContent = e.message;
+  }
 }
 
 // ---------- Venda ----------

@@ -1,0 +1,8 @@
+Total de produtos: 50
+Total de avisos: 5
+
+- KNB002 (iPhone 15 Pro Max 256GB Cinza): custo total R$3308.00, mas Kaua (R$980.00) + Gustavo (R$2170.00) = R$3150.00 — falta R$158.00 identificar de quem. Produto importado com o custo ORIGINAL (para o lucro historico continuar batendo); abra o produto na tela de Produtos e ajuste a divisao — o sistema vai travar ate a soma bater.
+- KNB014 (Carregador Indução (4 un.)): status dizia 'Estoque (1/4)' (sugerindo 3 vendida(s)) mas o lucro real da planilha so bate com 4 unidade(s) vendida(s). Importado com 4; confira se o status na planilha estava desatualizado.
+- KNB022 (iPhone 15 Pro 256GB Cinza): saida de estoque sem venda monetizada (status 'Troca (R$125 a receber)', canal 'Troca'). Marcado fora de estoque, mas nenhuma venda foi criada — confira manualmente.
+- KNB026 (iPhone 12 Pro 512GB Titânio): venda de R$750.00 (canal 'Troca encerrada') NAO reconcilia com o lucro real da planilha (R$0.0). Nao importado como venda automatica — registre manualmente pela tela de Vender.
+- KNB045 (PlayStation 4 Fat (1 controle)): saida de estoque sem venda monetizada (status 'Troca encerrada', canal 'Troca → Xbox One S'). Marcado fora de estoque, mas nenhuma venda foi criada — confira manualmente.

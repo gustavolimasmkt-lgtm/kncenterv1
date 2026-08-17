@@ -1,0 +1,1476 @@
+[
+  {
+    "sku": "KNB001",
+    "nome": "iPhone 13 256GB Azul",
+    "categoria": "iPhone",
+    "condicao": "Usado · 75% bat.",
+    "quantidade_total": 1,
+    "custo_total": 1400.0,
+    "investimento_incompleto": false,
+    "data_compra": "2025-05-08",
+    "preco_anuncio": 2100.0,
+    "lucro_minimo": 500.0,
+    "status_manual": null,
+    "obs": "Condição: Usado · 75% bat.",
+    "investimentos": [
+      {
+        "socio": "Gustavo",
+        "valor": 1400.0
+      }
+    ],
+    "venda": {
+      "quantidade": 1,
+      "valor_vendido": 1750.0,
+      "canal_venda": "Troca+Venda",
+      "data_venda": "2025-05-24",
+      "obs": ""
+    }
+  },
+  {
+    "sku": "KNB002",
+    "nome": "iPhone 15 Pro Max 256GB Cinza",
+    "categoria": "iPhone",
+    "condicao": "Usado · 87% bat.",
+    "quantidade_total": 1,
+    "custo_total": 3308.0,
+    "investimento_incompleto": true,
+    "data_compra": "2025-05-12",
+    "preco_anuncio": 4199.0,
+    "lucro_minimo": 750.0,
+    "status_manual": null,
+    "obs": "Condição: Usado · 87% bat. | [Import] ATENCAO: soma paga por socio (R$3150.00) nao bate com o custo total (R$3308.00). Corrija a divisao entre socios nesta tela.",
+    "investimentos": [
+      {
+        "socio": "Kauã",
+        "valor": 980.0
+      },
+      {
+        "socio": "Gustavo",
+        "valor": 2170.0
+      }
+    ],
+    "venda": {
+      "quantidade": 1,
+      "valor_vendido": 4000.0,
+      "canal_venda": "",
+      "data_venda": "2025-05-22",
+      "obs": ""
+    }
+  },
+  {
+    "sku": "KNB003",
+    "nome": "iPhone 13 Pro Max 256GB Verde",
+    "categoria": "iPhone",
+    "condicao": "Usado · 77% bat.",
+    "quantidade_total": 1,
+    "custo_total": 2100.0,
+    "investimento_incompleto": false,
+    "data_compra": "2025-05-23",
+    "preco_anuncio": 2700.0,
+    "lucro_minimo": 500.0,
+    "status_manual": null,
+    "obs": "Condição: Usado · 77% bat.",
+    "investimentos": [
+      {
+        "socio": "Kauã",
+        "valor": 1050.0
+      },
+      {
+        "socio": "Gustavo",
+        "valor": 1050.0
+      }
+    ],
+    "venda": {
+      "quantidade": 1,
+      "valor_vendido": 2500.0,
+      "canal_venda": "",
+      "data_venda": "2025-05-26",
+      "obs": ""
+    }
+  },
+  {
+    "sku": "KNB004",
+    "nome": "iPhone 12 128GB Lilás",
+    "categoria": "iPhone",
+    "condicao": "Usado · 79% bat.",
+    "quantidade_total": 1,
+    "custo_total": 820.0,
+    "investimento_incompleto": false,
+    "data_compra": "2025-06-05",
+    "preco_anuncio": 1400.0,
+    "lucro_minimo": null,
+    "status_manual": null,
+    "obs": "Condição: Usado · 79% bat.",
+    "investimentos": [
+      {
+        "socio": "Kauã",
+        "valor": 410.0
+      },
+      {
+        "socio": "Gustavo",
+        "valor": 410.0
+      }
+    ],
+    "venda": {
+      "quantidade": 1,
+      "valor_vendido": 1400.0,
+      "canal_venda": "Cartão",
+      "data_venda": "2025-06-06",
+      "obs": ""
+    }
+  },
+  {
+    "sku": "KNB005",
+    "nome": "iPhone 13 Pro 128GB Azul",
+    "categoria": "iPhone",
+    "condicao": "Usado · 100% bat. trocada",
+    "quantidade_total": 1,
+    "custo_total": 1355.0,
+    "investimento_incompleto": false,
+    "data_compra": "2025-06-07",
+    "preco_anuncio": 2299.0,
+    "lucro_minimo": 850.0,
+    "status_manual": null,
+    "obs": "Condição: Usado · 100% bat. trocada",
+    "investimentos": [
+      {
+        "socio": "Kauã",
+        "valor": 745.0
+      },
+      {
+        "socio": "Gustavo",
+        "valor": 610.0
+      }
+    ],
+    "venda": {
+      "quantidade": 1,
+      "valor_vendido": 2150.0,
+      "canal_venda": "Pix",
+      "data_venda": "2025-06-17",
+      "obs": ""
+    }
+  },
+  {
+    "sku": "KNB006",
+    "nome": "iPhone 14 Pro 128GB Roxo",
+    "categoria": "iPhone",
+    "condicao": "Usado · 77% bat.",
+    "quantidade_total": 1,
+    "custo_total": 2047.5,
+    "investimento_incompleto": false,
+    "data_compra": "2025-06-09",
+    "preco_anuncio": 2799.9,
+    "lucro_minimo": 326.2,
+    "status_manual": null,
+    "obs": "Condição: Usado · 77% bat.",
+    "investimentos": [
+      {
+        "socio": "Kauã",
+        "valor": 700.0
+      },
+      {
+        "socio": "Gustavo",
+        "valor": 1347.5
+      }
+    ],
+    "venda": {
+      "quantidade": 1,
+      "valor_vendido": 2692.0,
+      "canal_venda": "Dinheiro+Cartão",
+      "data_venda": "2025-06-13",
+      "obs": ""
+    }
+  },
+  {
+    "sku": "KNB007",
+    "nome": "iPhone 12 64GB Azul",
+    "categoria": "iPhone",
+    "condicao": "Usado · 78% bat.",
+    "quantidade_total": 1,
+    "custo_total": 850.0,
+    "investimento_incompleto": false,
+    "data_compra": "2025-06-20",
+    "preco_anuncio": 1400.0,
+    "lucro_minimo": 450.0,
+    "status_manual": null,
+    "obs": "Condição: Usado · 78% bat.",
+    "investimentos": [
+      {
+        "socio": "Kauã",
+        "valor": 425.0
+      },
+      {
+        "socio": "Gustavo",
+        "valor": 425.0
+      }
+    ],
+    "venda": {
+      "quantidade": 1,
+      "valor_vendido": 1250.0,
+      "canal_venda": "Pix",
+      "data_venda": "2025-07-01",
+      "obs": ""
+    }
+  },
+  {
+    "sku": "KNB008",
+    "nome": "iPhone 12 64GB Branco",
+    "categoria": "iPhone",
+    "condicao": "Usado · 78% bat.",
+    "quantidade_total": 1,
+    "custo_total": 900.0,
+    "investimento_incompleto": false,
+    "data_compra": "2025-06-22",
+    "preco_anuncio": 1400.0,
+    "lucro_minimo": 400.0,
+    "status_manual": null,
+    "obs": "Condição: Usado · 78% bat.",
+    "investimentos": [
+      {
+        "socio": "Kauã",
+        "valor": 450.0
+      },
+      {
+        "socio": "Gustavo",
+        "valor": 450.0
+      }
+    ],
+    "venda": {
+      "quantidade": 1,
+      "valor_vendido": 1250.0,
+      "canal_venda": "Pix",
+      "data_venda": "2025-06-30",
+      "obs": ""
+    }
+  },
+  {
+    "sku": "KNB009",
+    "nome": "iPhone 14 Pro Max 256GB Dourado",
+    "categoria": "iPhone",
+    "condicao": "Usado · 83% bat.",
+    "quantidade_total": 1,
+    "custo_total": 2300.0,
+    "investimento_incompleto": false,
+    "data_compra": "2025-06-22",
+    "preco_anuncio": 3200.0,
+    "lucro_minimo": 800.0,
+    "status_manual": null,
+    "obs": "Condição: Usado · 83% bat.",
+    "investimentos": [
+      {
+        "socio": "Kauã",
+        "valor": 1150.0
+      },
+      {
+        "socio": "Gustavo",
+        "valor": 1150.0
+      }
+    ],
+    "venda": {
+      "quantidade": 1,
+      "valor_vendido": 3050.0,
+      "canal_venda": "Pix",
+      "data_venda": "2025-06-23",
+      "obs": ""
+    }
+  },
+  {
+    "sku": "KNB010",
+    "nome": "TV Smart Toshiba 55\"",
+    "categoria": "TV",
+    "condicao": "Nova",
+    "quantidade_total": 1,
+    "custo_total": 1150.0,
+    "investimento_incompleto": false,
+    "data_compra": "2025-06-27",
+    "preco_anuncio": 1849.0,
+    "lucro_minimo": 650.0,
+    "status_manual": null,
+    "obs": "Condição: Nova",
+    "investimentos": [
+      {
+        "socio": "Kauã",
+        "valor": 575.0
+      },
+      {
+        "socio": "Gustavo",
+        "valor": 575.0
+      }
+    ],
+    "venda": {
+      "quantidade": 1,
+      "valor_vendido": 1850.0,
+      "canal_venda": "Pix",
+      "data_venda": "2025-06-27",
+      "obs": ""
+    }
+  },
+  {
+    "sku": "KNB011",
+    "nome": "iPhone 13 128GB Azul (c/ conserto)",
+    "categoria": "iPhone",
+    "condicao": "Usado · 78% bat.",
+    "quantidade_total": 1,
+    "custo_total": 1150.0,
+    "investimento_incompleto": false,
+    "data_compra": "2025-06-26",
+    "preco_anuncio": 1600.0,
+    "lucro_minimo": 400.0,
+    "status_manual": null,
+    "obs": "Condição: Usado · 78% bat.",
+    "investimentos": [
+      {
+        "socio": "Kauã",
+        "valor": 625.0
+      },
+      {
+        "socio": "Gustavo",
+        "valor": 525.0
+      }
+    ],
+    "venda": {
+      "quantidade": 1,
+      "valor_vendido": 1500.0,
+      "canal_venda": "Pix",
+      "data_venda": "2025-06-30",
+      "obs": ""
+    }
+  },
+  {
+    "sku": "KNB012",
+    "nome": "Carregador iPhone TipoC (5 un.)",
+    "categoria": "iPhone",
+    "condicao": "5 unidades · R$17,80 cada",
+    "quantidade_total": 5,
+    "custo_total": 89.0,
+    "investimento_incompleto": false,
+    "data_compra": "2025-06-27",
+    "preco_anuncio": 200.0,
+    "lucro_minimo": null,
+    "status_manual": null,
+    "obs": "Condição: 5 unidades · R$17,80 cada",
+    "investimentos": [
+      {
+        "socio": "Kauã",
+        "valor": 44.5
+      },
+      {
+        "socio": "Gustavo",
+        "valor": 44.5
+      }
+    ],
+    "venda": {
+      "quantidade": 5,
+      "valor_vendido": 219.9,
+      "canal_venda": "Pix (5 un.)",
+      "data_venda": "2025-06-30",
+      "obs": ""
+    }
+  },
+  {
+    "sku": "KNB013",
+    "nome": "TV TCL 50\"",
+    "categoria": "TV",
+    "condicao": "Nova",
+    "quantidade_total": 1,
+    "custo_total": 1086.9,
+    "investimento_incompleto": false,
+    "data_compra": "2025-06-27",
+    "preco_anuncio": 1749.9,
+    "lucro_minimo": 562.1,
+    "status_manual": null,
+    "obs": "Condição: Nova",
+    "investimentos": [
+      {
+        "socio": "Kauã",
+        "valor": 543.45
+      },
+      {
+        "socio": "Gustavo",
+        "valor": 543.45
+      }
+    ],
+    "venda": {
+      "quantidade": 1,
+      "valor_vendido": 1600.0,
+      "canal_venda": "Pix",
+      "data_venda": "2025-07-02",
+      "obs": ""
+    }
+  },
+  {
+    "sku": "KNB014",
+    "nome": "Carregador Indução (4 un.)",
+    "categoria": "Acessório",
+    "condicao": "4 un. × R$22,90",
+    "quantidade_total": 4,
+    "custo_total": 91.6,
+    "investimento_incompleto": false,
+    "data_compra": "2025-07-01",
+    "preco_anuncio": 59.9,
+    "lucro_minimo": 39.9,
+    "status_manual": null,
+    "obs": "Condição: 4 un. × R$22,90",
+    "investimentos": [
+      {
+        "socio": "Kauã",
+        "valor": 45.8
+      },
+      {
+        "socio": "Gustavo",
+        "valor": 45.8
+      }
+    ],
+    "venda": {
+      "quantidade": 4,
+      "valor_vendido": 125.0,
+      "canal_venda": "Pix (3 un.)",
+      "data_venda": "2025-07-18",
+      "obs": ""
+    }
+  },
+  {
+    "sku": "KNB015",
+    "nome": "Carregador Lightning CX Dif. (2 un.)",
+    "categoria": "Acessório",
+    "condicao": "2 un. × R$29,90",
+    "quantidade_total": 2,
+    "custo_total": 59.8,
+    "investimento_incompleto": false,
+    "data_compra": "2025-07-01",
+    "preco_anuncio": 54.9,
+    "lucro_minimo": null,
+    "status_manual": null,
+    "obs": "Condição: 2 un. × R$29,90",
+    "investimentos": [
+      {
+        "socio": "Kauã",
+        "valor": 29.9
+      },
+      {
+        "socio": "Gustavo",
+        "valor": 29.9
+      }
+    ],
+    "venda": {
+      "quantidade": 2,
+      "valor_vendido": 104.9,
+      "canal_venda": "Pix (2 un.)",
+      "data_venda": "2025-07-07",
+      "obs": ""
+    }
+  },
+  {
+    "sku": "KNB016",
+    "nome": "Carregador USB-C CX Dif. (2 un.)",
+    "categoria": "Acessório",
+    "condicao": "2 un. × R$29,90",
+    "quantidade_total": 2,
+    "custo_total": 59.8,
+    "investimento_incompleto": false,
+    "data_compra": "2025-07-01",
+    "preco_anuncio": 59.9,
+    "lucro_minimo": null,
+    "status_manual": null,
+    "obs": "Condição: 2 un. × R$29,90",
+    "investimentos": [
+      {
+        "socio": "Kauã",
+        "valor": 29.9
+      },
+      {
+        "socio": "Gustavo",
+        "valor": 29.9
+      }
+    ],
+    "venda": {
+      "quantidade": 2,
+      "valor_vendido": 79.9,
+      "canal_venda": "Pix",
+      "data_venda": "2025-07-08",
+      "obs": ""
+    }
+  },
+  {
+    "sku": "KNB017",
+    "nome": "Fone Bluetooth (4 un.)",
+    "categoria": "Acessório",
+    "condicao": "4 un. × R$29,90",
+    "quantidade_total": 4,
+    "custo_total": 119.6,
+    "investimento_incompleto": false,
+    "data_compra": "2025-07-01",
+    "preco_anuncio": 52.9,
+    "lucro_minimo": 39.9,
+    "status_manual": null,
+    "obs": "Condição: 4 un. × R$29,90",
+    "investimentos": [
+      {
+        "socio": "Kauã",
+        "valor": 59.8
+      },
+      {
+        "socio": "Gustavo",
+        "valor": 59.8
+      }
+    ],
+    "venda": {
+      "quantidade": 4,
+      "valor_vendido": 159.8,
+      "canal_venda": "Pix (4 un.)",
+      "data_venda": "2025-08-07",
+      "obs": ""
+    }
+  },
+  {
+    "sku": "KNB018",
+    "nome": "Película IP 13/13Pro/14/16e (7 un.)",
+    "categoria": "Acessório",
+    "condicao": "7 un. × R$1,69",
+    "quantidade_total": 7,
+    "custo_total": 11.83,
+    "investimento_incompleto": false,
+    "data_compra": "2025-07-01",
+    "preco_anuncio": 25.0,
+    "lucro_minimo": 105.0,
+    "status_manual": null,
+    "obs": "Condição: 7 un. × R$1,69",
+    "investimentos": [
+      {
+        "socio": "Kauã",
+        "valor": 5.92
+      },
+      {
+        "socio": "Gustavo",
+        "valor": 5.92
+      }
+    ],
+    "venda": null
+  },
+  {
+    "sku": "KNB019",
+    "nome": "Película IP 15 Pro Max 3D (1 un.)",
+    "categoria": "Acessório",
+    "condicao": "1 un. × R$4,90",
+    "quantidade_total": 1,
+    "custo_total": 4.9,
+    "investimento_incompleto": false,
+    "data_compra": "2025-07-01",
+    "preco_anuncio": 35.0,
+    "lucro_minimo": 20.0,
+    "status_manual": null,
+    "obs": "Condição: 1 un. × R$4,90",
+    "investimentos": [
+      {
+        "socio": "Kauã",
+        "valor": 2.45
+      },
+      {
+        "socio": "Gustavo",
+        "valor": 2.45
+      }
+    ],
+    "venda": null
+  },
+  {
+    "sku": "KNB020",
+    "nome": "Película IP 14 Pro Max 3D (2 un.)",
+    "categoria": "Acessório",
+    "condicao": "2 un. × R$1,69",
+    "quantidade_total": 2,
+    "custo_total": 3.38,
+    "investimento_incompleto": false,
+    "data_compra": "2025-07-01",
+    "preco_anuncio": 25.0,
+    "lucro_minimo": 40.0,
+    "status_manual": null,
+    "obs": "Condição: 2 un. × R$1,69",
+    "investimentos": [
+      {
+        "socio": "Kauã",
+        "valor": 1.69
+      },
+      {
+        "socio": "Gustavo",
+        "valor": 1.69
+      }
+    ],
+    "venda": null
+  },
+  {
+    "sku": "KNB021",
+    "nome": "TV TCL 55\"",
+    "categoria": "TV",
+    "condicao": "Nova",
+    "quantidade_total": 1,
+    "custo_total": 1250.0,
+    "investimento_incompleto": false,
+    "data_compra": "2025-07-03",
+    "preco_anuncio": 1899.0,
+    "lucro_minimo": 499.0,
+    "status_manual": null,
+    "obs": "Condição: Nova",
+    "investimentos": [
+      {
+        "socio": "Kauã",
+        "valor": 625.0
+      },
+      {
+        "socio": "Gustavo",
+        "valor": 625.0
+      }
+    ],
+    "venda": {
+      "quantidade": 1,
+      "valor_vendido": 1800.0,
+      "canal_venda": "Pix",
+      "data_venda": "2025-07-08",
+      "obs": ""
+    }
+  },
+  {
+    "sku": "KNB022",
+    "nome": "iPhone 15 Pro 256GB Cinza",
+    "categoria": "iPhone",
+    "condicao": "Usado · Tampa quebrada",
+    "quantidade_total": 1,
+    "custo_total": 2900.0,
+    "investimento_incompleto": false,
+    "data_compra": "2025-07-07",
+    "preco_anuncio": 3600.0,
+    "lucro_minimo": 275.0,
+    "status_manual": "Troca (R$125 a receber)",
+    "obs": "Condição: Usado · Tampa quebrada | [Import] Item saiu do estoque em 08/07/2025 sem valor de venda monetario na planilha (canal: Troca). Retorno Kaua R$1350.0, retorno Gustavo R$1550.0, lucro real R$0.0. Registre manualmente como lancamento/observacao se necessario.",
+    "investimentos": [
+      {
+        "socio": "Kauã",
+        "valor": 1450.0
+      },
+      {
+        "socio": "Gustavo",
+        "valor": 1450.0
+      }
+    ],
+    "venda": null
+  },
+  {
+    "sku": "KNB025",
+    "nome": "iPhone 16 128GB Branco",
+    "categoria": "iPhone",
+    "condicao": "Usado · 89% bat.",
+    "quantidade_total": 1,
+    "custo_total": 2900.0,
+    "investimento_incompleto": false,
+    "data_compra": "2025-07-09",
+    "preco_anuncio": 3799.0,
+    "lucro_minimo": 349.5,
+    "status_manual": null,
+    "obs": "Condição: Usado · 89% bat.",
+    "investimentos": [
+      {
+        "socio": "Kauã",
+        "valor": 1450.0
+      },
+      {
+        "socio": "Gustavo",
+        "valor": 1450.0
+      }
+    ],
+    "venda": {
+      "quantidade": 1,
+      "valor_vendido": 3450.0,
+      "canal_venda": "Pix",
+      "data_venda": "2025-07-23",
+      "obs": ""
+    }
+  },
+  {
+    "sku": "KNB023",
+    "nome": "Xiaomi X5 Pro 5G",
+    "categoria": "Android",
+    "condicao": "Usado",
+    "quantidade_total": 1,
+    "custo_total": 300.0,
+    "investimento_incompleto": false,
+    "data_compra": "2025-07-07",
+    "preco_anuncio": 650.0,
+    "lucro_minimo": 100.0,
+    "status_manual": null,
+    "obs": "Condição: Usado | [Import] Valor bruto da venda era R$650.00; descontado R$70.00 (Pix (-R$70 comissão)) pra bater com o lucro real da planilha (R$280.00).",
+    "investimentos": [
+      {
+        "socio": "Kauã",
+        "valor": 150.0
+      },
+      {
+        "socio": "Gustavo",
+        "valor": 150.0
+      }
+    ],
+    "venda": {
+      "quantidade": 1,
+      "valor_vendido": 580.0,
+      "canal_venda": "Pix (-R$70 comissão)",
+      "data_venda": "2025-07-10",
+      "obs": ""
+    }
+  },
+  {
+    "sku": "KNB024",
+    "nome": "Carregador TipoC Novo (10 un.) - Reinvest.",
+    "categoria": "Acessório",
+    "condicao": "10 un. × R$17,99",
+    "quantidade_total": 10,
+    "custo_total": 179.9,
+    "investimento_incompleto": false,
+    "data_compra": "2025-07-08",
+    "preco_anuncio": 39.9,
+    "lucro_minimo": 0.0,
+    "status_manual": "Esgotado (1 estragado)",
+    "obs": "Condição: 10 un. × R$17,99",
+    "investimentos": [
+      {
+        "socio": "Kauã",
+        "valor": 89.95
+      },
+      {
+        "socio": "Gustavo",
+        "valor": 89.95
+      }
+    ],
+    "venda": {
+      "quantidade": 9,
+      "valor_vendido": 356.6,
+      "canal_venda": "Pix (9 vend.+1 estrag.)",
+      "data_venda": "2025-08-03",
+      "obs": ""
+    }
+  },
+  {
+    "sku": "KNB026",
+    "nome": "iPhone 12 Pro 512GB Titânio",
+    "categoria": "iPhone",
+    "condicao": "Usado · 75% bat.",
+    "quantidade_total": 1,
+    "custo_total": 1250.0,
+    "investimento_incompleto": false,
+    "data_compra": "2025-07-09",
+    "preco_anuncio": 1799.0,
+    "lucro_minimo": 224.5,
+    "status_manual": null,
+    "obs": "Condição: Usado · 75% bat. | [Import] NAO IMPORTADO COMO VENDA: planilha registrava R$750.00 em 11/07/2025 (canal: Troca encerrada), lucro real R$0.0, retorno Kaua R$375.0, retorno Gustavo R$375.0. Registre manualmente se necessario.",
+    "investimentos": [
+      {
+        "socio": "Kauã",
+        "valor": 625.0
+      },
+      {
+        "socio": "Gustavo",
+        "valor": 625.0
+      }
+    ],
+    "venda": null
+  },
+  {
+    "sku": "KNB027",
+    "nome": "iPhone 13 Mini 128GB Azul Escuro",
+    "categoria": "iPhone",
+    "condicao": "Usado · 74% bat.",
+    "quantidade_total": 1,
+    "custo_total": 500.0,
+    "investimento_incompleto": false,
+    "data_compra": "2025-07-11",
+    "preco_anuncio": 1500.0,
+    "lucro_minimo": 375.0,
+    "status_manual": null,
+    "obs": "Condição: Usado · 74% bat.",
+    "investimentos": [
+      {
+        "socio": "Kauã",
+        "valor": 250.0
+      },
+      {
+        "socio": "Gustavo",
+        "valor": 250.0
+      }
+    ],
+    "venda": {
+      "quantidade": 1,
+      "valor_vendido": 1300.0,
+      "canal_venda": "Pix",
+      "data_venda": "2025-07-14",
+      "obs": ""
+    }
+  },
+  {
+    "sku": "KNB028",
+    "nome": "iPhone 11 128GB Vermelho",
+    "categoria": "iPhone",
+    "condicao": "Usado · 70% bat.",
+    "quantidade_total": 1,
+    "custo_total": 525.0,
+    "investimento_incompleto": false,
+    "data_compra": "2025-07-16",
+    "preco_anuncio": 899.0,
+    "lucro_minimo": 112.5,
+    "status_manual": null,
+    "obs": "Condição: Usado · 70% bat.",
+    "investimentos": [
+      {
+        "socio": "Kauã",
+        "valor": 262.5
+      },
+      {
+        "socio": "Gustavo",
+        "valor": 262.5
+      }
+    ],
+    "venda": {
+      "quantidade": 1,
+      "valor_vendido": 750.0,
+      "canal_venda": "Pix",
+      "data_venda": "2025-07-23",
+      "obs": ""
+    }
+  },
+  {
+    "sku": "KNB029",
+    "nome": "PlayStation 4 Slim (2 controles)",
+    "categoria": "Console/Videogame",
+    "condicao": "Usado",
+    "quantidade_total": 1,
+    "custo_total": 850.0,
+    "investimento_incompleto": false,
+    "data_compra": "2025-07-17",
+    "preco_anuncio": 1350.0,
+    "lucro_minimo": 175.0,
+    "status_manual": null,
+    "obs": "Condição: Usado",
+    "investimentos": [
+      {
+        "socio": "Kauã",
+        "valor": 425.0
+      },
+      {
+        "socio": "Gustavo",
+        "valor": 425.0
+      }
+    ],
+    "venda": {
+      "quantidade": 1,
+      "valor_vendido": 1100.0,
+      "canal_venda": "Pix",
+      "data_venda": "2025-07-31",
+      "obs": ""
+    }
+  },
+  {
+    "sku": "KNB030",
+    "nome": "Carregador USB-C Kit (10 un.) - Reinvest.",
+    "categoria": "Acessório",
+    "condicao": "10 un. × R$15,00",
+    "quantidade_total": 10,
+    "custo_total": 150.0,
+    "investimento_incompleto": false,
+    "data_compra": "2025-07-22",
+    "preco_anuncio": 49.9,
+    "lucro_minimo": 149.4,
+    "status_manual": null,
+    "obs": "Condição: 10 un. × R$15,00",
+    "investimentos": [
+      {
+        "socio": "Kauã",
+        "valor": 75.0
+      },
+      {
+        "socio": "Gustavo",
+        "valor": 75.0
+      }
+    ],
+    "venda": {
+      "quantidade": 4,
+      "valor_vendido": 182.11,
+      "canal_venda": "Pix (4 un.)",
+      "data_venda": "2025-08-15",
+      "obs": ""
+    }
+  },
+  {
+    "sku": "KNB031",
+    "nome": "Carregador Lightning Kit (10 un.) - Reinvest.",
+    "categoria": "Acessório",
+    "condicao": "10 un. × R$15,00",
+    "quantidade_total": 10,
+    "custo_total": 150.0,
+    "investimento_incompleto": false,
+    "data_compra": "2025-07-22",
+    "preco_anuncio": 49.9,
+    "lucro_minimo": 0.0,
+    "status_manual": null,
+    "obs": "Condição: 10 un. × R$15,00",
+    "investimentos": [
+      {
+        "socio": "Kauã",
+        "valor": 75.0
+      },
+      {
+        "socio": "Gustavo",
+        "valor": 75.0
+      }
+    ],
+    "venda": {
+      "quantidade": 10,
+      "valor_vendido": 349.61,
+      "canal_venda": "Pix (10 un.)",
+      "data_venda": "2025-08-06",
+      "obs": ""
+    }
+  },
+  {
+    "sku": "KNB032",
+    "nome": "Carregador Indução Magnético (4 un.) - Reinvest.",
+    "categoria": "Acessório",
+    "condicao": "4 un. × R$35,00",
+    "quantidade_total": 4,
+    "custo_total": 140.0,
+    "investimento_incompleto": false,
+    "data_compra": "2025-07-22",
+    "preco_anuncio": 69.9,
+    "lucro_minimo": 14.9,
+    "status_manual": null,
+    "obs": "Condição: 4 un. × R$35,00",
+    "investimentos": [
+      {
+        "socio": "Kauã",
+        "valor": 70.0
+      },
+      {
+        "socio": "Gustavo",
+        "valor": 70.0
+      }
+    ],
+    "venda": {
+      "quantidade": 4,
+      "valor_vendido": 165.88,
+      "canal_venda": "Pix (4 un.) · última a custo",
+      "data_venda": "2025-08-09",
+      "obs": ""
+    }
+  },
+  {
+    "sku": "KNB033",
+    "nome": "iPhone 12 Pro 128GB Branco",
+    "categoria": "iPhone",
+    "condicao": "Usado · 81% bat.",
+    "quantidade_total": 1,
+    "custo_total": 1150.0,
+    "investimento_incompleto": false,
+    "data_compra": "2025-07-24",
+    "preco_anuncio": 1699.0,
+    "lucro_minimo": 199.95,
+    "status_manual": null,
+    "obs": "Condição: Usado · 81% bat.",
+    "investimentos": [
+      {
+        "socio": "Kauã",
+        "valor": 575.0
+      },
+      {
+        "socio": "Gustavo",
+        "valor": 575.0
+      }
+    ],
+    "venda": {
+      "quantidade": 1,
+      "valor_vendido": 1610.0,
+      "canal_venda": "Pix",
+      "data_venda": "2025-07-31",
+      "obs": ""
+    }
+  },
+  {
+    "sku": "KNB034",
+    "nome": "TV LG Smart 55\" + Suporte de Parede",
+    "categoria": "TV",
+    "condicao": "Nova",
+    "quantidade_total": 1,
+    "custo_total": 1297.7,
+    "investimento_incompleto": false,
+    "data_compra": "2025-07-27",
+    "preco_anuncio": 1849.9,
+    "lucro_minimo": 201.15,
+    "status_manual": null,
+    "obs": "Condição: Nova",
+    "investimentos": [
+      {
+        "socio": "Kauã",
+        "valor": 648.85
+      },
+      {
+        "socio": "Gustavo",
+        "valor": 648.85
+      }
+    ],
+    "venda": {
+      "quantidade": 1,
+      "valor_vendido": 1620.0,
+      "canal_venda": "Pix",
+      "data_venda": "2025-08-07",
+      "obs": ""
+    }
+  },
+  {
+    "sku": "KNB035",
+    "nome": "PS4 Slim 500GB (1 ctrl+jogo)",
+    "categoria": "Console/Videogame",
+    "condicao": "Usado · 1 ctrl vendido (R$110)",
+    "quantidade_total": 1,
+    "custo_total": 710.0,
+    "investimento_incompleto": false,
+    "data_compra": "2025-08-03",
+    "preco_anuncio": 1200.0,
+    "lucro_minimo": 195.0,
+    "status_manual": null,
+    "obs": "Condição: Usado · 1 ctrl vendido (R$110)",
+    "investimentos": [
+      {
+        "socio": "Kauã",
+        "valor": 355.0
+      },
+      {
+        "socio": "Gustavo",
+        "valor": 355.0
+      }
+    ],
+    "venda": {
+      "quantidade": 1,
+      "valor_vendido": 1000.0,
+      "canal_venda": "Pix",
+      "data_venda": "2025-08-07",
+      "obs": ""
+    }
+  },
+  {
+    "sku": "KNB036",
+    "nome": "iPhone 11 128GB Preto",
+    "categoria": "iPhone",
+    "condicao": "Usado · 100% bat.",
+    "quantidade_total": 1,
+    "custo_total": 550.0,
+    "investimento_incompleto": false,
+    "data_compra": "2025-08-06",
+    "preco_anuncio": 899.9,
+    "lucro_minimo": 100.0,
+    "status_manual": null,
+    "obs": "Condição: Usado · 100% bat.",
+    "investimentos": [
+      {
+        "socio": "Kauã",
+        "valor": 325.0
+      },
+      {
+        "socio": "Gustavo",
+        "valor": 225.0
+      }
+    ],
+    "venda": {
+      "quantidade": 1,
+      "valor_vendido": 900.0,
+      "canal_venda": "Pix",
+      "data_venda": "2025-08-07",
+      "obs": ""
+    }
+  },
+  {
+    "sku": "KNB037",
+    "nome": "iPhone 12 64GB Preto",
+    "categoria": "iPhone",
+    "condicao": "Usado · 77% bat.",
+    "quantidade_total": 1,
+    "custo_total": 730.0,
+    "investimento_incompleto": false,
+    "data_compra": "2025-08-07",
+    "preco_anuncio": 1249.9,
+    "lucro_minimo": 160.0,
+    "status_manual": null,
+    "obs": "Condição: Usado · 77% bat.",
+    "investimentos": [
+      {
+        "socio": "Kauã",
+        "valor": 365.0
+      },
+      {
+        "socio": "Gustavo",
+        "valor": 365.0
+      }
+    ],
+    "venda": {
+      "quantidade": 1,
+      "valor_vendido": 1080.0,
+      "canal_venda": "Pix",
+      "data_venda": "2025-08-10",
+      "obs": ""
+    }
+  },
+  {
+    "sku": "KNB038",
+    "nome": "iPhone 13 128GB Preto",
+    "categoria": "iPhone",
+    "condicao": "Usado · 80% bat. · Todo original",
+    "quantidade_total": 1,
+    "custo_total": 1030.0,
+    "investimento_incompleto": false,
+    "data_compra": "2025-08-08",
+    "preco_anuncio": 1550.0,
+    "lucro_minimo": 185.0,
+    "status_manual": null,
+    "obs": "Condição: Usado · 80% bat. · Todo original",
+    "investimentos": [
+      {
+        "socio": "Kauã",
+        "valor": 515.0
+      },
+      {
+        "socio": "Gustavo",
+        "valor": 515.0
+      }
+    ],
+    "venda": {
+      "quantidade": 1,
+      "valor_vendido": 1570.0,
+      "canal_venda": "Cartão de crédito",
+      "data_venda": "2025-08-15",
+      "obs": ""
+    }
+  },
+  {
+    "sku": "KNB039",
+    "nome": "TV TCL SEMP 43\"",
+    "categoria": "TV",
+    "condicao": "Nova",
+    "quantidade_total": 1,
+    "custo_total": 870.0,
+    "investimento_incompleto": false,
+    "data_compra": "2025-08-08",
+    "preco_anuncio": 1300.0,
+    "lucro_minimo": 140.0,
+    "status_manual": null,
+    "obs": "Condição: Nova",
+    "investimentos": [
+      {
+        "socio": "Kauã",
+        "valor": 435.0
+      },
+      {
+        "socio": "Gustavo",
+        "valor": 435.0
+      }
+    ],
+    "venda": {
+      "quantidade": 1,
+      "valor_vendido": 1150.0,
+      "canal_venda": "Pix",
+      "data_venda": "2025-08-11",
+      "obs": ""
+    }
+  },
+  {
+    "sku": "KNB040",
+    "nome": "iPhone 13 Mini 128GB",
+    "categoria": "iPhone",
+    "condicao": "Usado · +R$50 gasolina",
+    "quantidade_total": 1,
+    "custo_total": 950.0,
+    "investimento_incompleto": false,
+    "data_compra": "2025-08-08",
+    "preco_anuncio": 1499.0,
+    "lucro_minimo": 200.0,
+    "status_manual": null,
+    "obs": "Condição: Usado · +R$50 gasolina",
+    "investimentos": [
+      {
+        "socio": "Kauã",
+        "valor": 475.0
+      },
+      {
+        "socio": "Gustavo",
+        "valor": 475.0
+      }
+    ],
+    "venda": null
+  },
+  {
+    "sku": "KNB041",
+    "nome": "Carregador USB-C KIT (5 un.) - Reinvest.",
+    "categoria": "Acessório",
+    "condicao": "5 un. × R$18,90",
+    "quantidade_total": 5,
+    "custo_total": 94.5,
+    "investimento_incompleto": false,
+    "data_compra": "2025-08-11",
+    "preco_anuncio": 49.9,
+    "lucro_minimo": 77.5,
+    "status_manual": null,
+    "obs": "Condição: 5 un. × R$18,90",
+    "investimentos": [
+      {
+        "socio": "Kauã",
+        "valor": 47.25
+      },
+      {
+        "socio": "Gustavo",
+        "valor": 47.25
+      }
+    ],
+    "venda": null
+  },
+  {
+    "sku": "KNB042",
+    "nome": "Cabo USB-C (6 un.) - Reinvest.",
+    "categoria": "Acessório",
+    "condicao": "6 un. × R$14,07",
+    "quantidade_total": 6,
+    "custo_total": 84.4,
+    "investimento_incompleto": false,
+    "data_compra": "2025-08-11",
+    "preco_anuncio": 29.9,
+    "lucro_minimo": 47.49,
+    "status_manual": null,
+    "obs": "Condição: 6 un. × R$14,07",
+    "investimentos": [
+      {
+        "socio": "Kauã",
+        "valor": 42.2
+      },
+      {
+        "socio": "Gustavo",
+        "valor": 42.2
+      }
+    ],
+    "venda": null
+  },
+  {
+    "sku": "KNB043",
+    "nome": "iPhone 12 128GB Azul",
+    "categoria": "iPhone",
+    "condicao": "Usado · 83% bat. · Todo original",
+    "quantidade_total": 1,
+    "custo_total": 920.0,
+    "investimento_incompleto": false,
+    "data_compra": "2025-08-11",
+    "preco_anuncio": 1349.9,
+    "lucro_minimo": 164.95,
+    "status_manual": null,
+    "obs": "Condição: Usado · 83% bat. · Todo original",
+    "investimentos": [
+      {
+        "socio": "Kauã",
+        "valor": 470.0
+      },
+      {
+        "socio": "Gustavo",
+        "valor": 450.0
+      }
+    ],
+    "venda": {
+      "quantidade": 1,
+      "valor_vendido": 1320.0,
+      "canal_venda": "Pix",
+      "data_venda": "2025-08-14",
+      "obs": ""
+    }
+  },
+  {
+    "sku": "KNB044",
+    "nome": "iPhone 13 Pro Max 256GB Azul",
+    "categoria": "iPhone",
+    "condicao": "Usado · 76% bat. · Prob. placa",
+    "quantidade_total": 1,
+    "custo_total": 1000.0,
+    "investimento_incompleto": false,
+    "data_compra": "2025-08-11",
+    "preco_anuncio": 1599.0,
+    "lucro_minimo": 200.0,
+    "status_manual": null,
+    "obs": "Condição: Usado · 76% bat. · Prob. placa",
+    "investimentos": [
+      {
+        "socio": "Kauã",
+        "valor": 500.0
+      },
+      {
+        "socio": "Gustavo",
+        "valor": 500.0
+      }
+    ],
+    "venda": {
+      "quantidade": 1,
+      "valor_vendido": 1340.0,
+      "canal_venda": "Troca (+R$720 + 2 iPhones)",
+      "data_venda": "2025-08-14",
+      "obs": ""
+    }
+  },
+  {
+    "sku": "KNB045",
+    "nome": "PlayStation 4 Fat (1 controle)",
+    "categoria": "Console/Videogame",
+    "condicao": "Usado",
+    "quantidade_total": 1,
+    "custo_total": 770.0,
+    "investimento_incompleto": false,
+    "data_compra": "2025-08-12",
+    "preco_anuncio": 1199.9,
+    "lucro_minimo": 140.0,
+    "status_manual": "Troca encerrada",
+    "obs": "Condição: Usado | [Import] Item saiu do estoque em 13/08/2025 sem valor de venda monetario na planilha (canal: Troca → Xbox One S). Retorno Kaua R$385.0, retorno Gustavo R$385.0, lucro real R$0.0. Registre manualmente como lancamento/observacao se necessario.",
+    "investimentos": [
+      {
+        "socio": "Kauã",
+        "valor": 385.0
+      },
+      {
+        "socio": "Gustavo",
+        "valor": 385.0
+      }
+    ],
+    "venda": null
+  },
+  {
+    "sku": "KNB046",
+    "nome": "iPhone 14 Pro Max 128GB Roxo",
+    "categoria": "iPhone",
+    "condicao": "Usado · 85% bat.",
+    "quantidade_total": 1,
+    "custo_total": 2350.0,
+    "investimento_incompleto": false,
+    "data_compra": "2025-08-12",
+    "preco_anuncio": 3100.0,
+    "lucro_minimo": 275.0,
+    "status_manual": null,
+    "obs": "Condição: Usado · 85% bat.",
+    "investimentos": [
+      {
+        "socio": "Kauã",
+        "valor": 1175.0
+      },
+      {
+        "socio": "Gustavo",
+        "valor": 1175.0
+      }
+    ],
+    "venda": null
+  },
+  {
+    "sku": "KNB047",
+    "nome": "Xbox One S 2ctrl 500GB Branco",
+    "categoria": "Console/Videogame",
+    "condicao": "Usado · Troca com PS4 Fat",
+    "quantidade_total": 1,
+    "custo_total": 770.0,
+    "investimento_incompleto": false,
+    "data_compra": "2025-08-13",
+    "preco_anuncio": 1249.9,
+    "lucro_minimo": 115.0,
+    "status_manual": null,
+    "obs": "Condição: Usado · Troca com PS4 Fat",
+    "investimentos": [
+      {
+        "socio": "Kauã",
+        "valor": 385.0
+      },
+      {
+        "socio": "Gustavo",
+        "valor": 385.0
+      }
+    ],
+    "venda": null
+  },
+  {
+    "sku": "KNB048",
+    "nome": "iPhone 11 64GB Preto",
+    "categoria": "iPhone",
+    "condicao": "Usado · Tela trocada",
+    "quantidade_total": 1,
+    "custo_total": 300.0,
+    "investimento_incompleto": false,
+    "data_compra": "2025-08-14",
+    "preco_anuncio": 850.0,
+    "lucro_minimo": 150.0,
+    "status_manual": null,
+    "obs": "Condição: Usado · Tela trocada",
+    "investimentos": [
+      {
+        "socio": "Kauã",
+        "valor": 150.0
+      },
+      {
+        "socio": "Gustavo",
+        "valor": 150.0
+      }
+    ],
+    "venda": {
+      "quantidade": 1,
+      "valor_vendido": 750.0,
+      "canal_venda": "Pix",
+      "data_venda": "2025-08-16",
+      "obs": ""
+    }
+  },
+  {
+    "sku": "KNB049",
+    "nome": "iPhone 11 Pro Max 256GB",
+    "categoria": "iPhone",
+    "condicao": "Usado · 71% bat. · Tela trocada",
+    "quantidade_total": 1,
+    "custo_total": 320.0,
+    "investimento_incompleto": false,
+    "data_compra": "2025-08-14",
+    "preco_anuncio": 1099.0,
+    "lucro_minimo": 190.0,
+    "status_manual": null,
+    "obs": "Condição: Usado · 71% bat. · Tela trocada",
+    "investimentos": [
+      {
+        "socio": "Kauã",
+        "valor": 160.0
+      },
+      {
+        "socio": "Gustavo",
+        "valor": 160.0
+      }
+    ],
+    "venda": null
+  },
+  {
+    "sku": "KNB050",
+    "nome": "Carregador Lightning Power Kit (15 un.) - Reinvest.",
+    "categoria": "Acessório",
+    "condicao": "15 un. × R$19,99",
+    "quantidade_total": 15,
+    "custo_total": 299.85,
+    "investimento_incompleto": false,
+    "data_compra": "2025-08-14",
+    "preco_anuncio": 49.9,
+    "lucro_minimo": 239.28,
+    "status_manual": null,
+    "obs": "Condição: 15 un. × R$19,99",
+    "investimentos": [
+      {
+        "socio": "Kauã",
+        "valor": 149.93
+      },
+      {
+        "socio": "Gustavo",
+        "valor": 149.93
+      }
+    ],
+    "venda": {
+      "quantidade": 7,
+      "valor_vendido": 259.49,
+      "canal_venda": "Pix (7 un.) · 1 a custo",
+      "data_venda": "2025-08-16",
+      "obs": ""
+    }
+  }
+]

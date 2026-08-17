@@ -7,6 +7,7 @@ const path = require('path');
 const fs = require('fs');
 const multer = require('multer');
 const { processarPlanilha } = require('./importador');
+const XLSX = require('xlsx');
 
 const app = express();
 app.use(express.json());
@@ -578,16 +579,90 @@ app.put('/api/produtos/:id', (req, res) => {
   }
 });
 
+// Exclui o produto e tudo que depende dele (fotos em disco, linhas de investimento, linhas de
+// foto) — o SQLite aqui nao roda com PRAGMA foreign_keys ligado, entao ON DELETE CASCADE do
+// schema nao e aplicado sozinho; precisa limpar na mao pra nao deixar linha orfa no banco.
+function excluirProdutoDb(produto, usuarioId) {
+  const fotos = db.prepare('SELECT arquivo FROM produto_fotos WHERE produto_id=?').all(produto.id);
+  for (const f of fotos) { try { fs.unlinkSync(path.join(UPLOADS_DIR, f.arquivo)); } catch (e) {} }
+  db.prepare('DELETE FROM produto_fotos WHERE produto_id=?').run(produto.id);
+  db.prepare('DELETE FROM produto_investimentos WHERE produto_id=?').run(produto.id);
+  db.prepare('DELETE FROM produtos WHERE id=?').run(produto.id);
+  db.prepare('INSERT INTO produtos_auditoria (produto_id,usuario_id,acao,dados_antes) VALUES (?,?,?,?)')
+    .run(produto.id, usuarioId, 'excluido', JSON.stringify(produto));
+}
+
 app.delete('/api/produtos/:id', (req, res) => {
   const antes = db.prepare('SELECT * FROM produtos WHERE id=?').get(req.params.id);
   if (!antes) return err(res, 'Produto nao encontrado', 404);
   if (antes.quantidade_vendida > 0) return err(res, 'Nao e possivel excluir produto com vendas registradas. Exclua as vendas primeiro.');
-  const fotos = db.prepare('SELECT arquivo FROM produto_fotos WHERE produto_id=?').all(req.params.id);
-  for (const f of fotos) { try { fs.unlinkSync(path.join(UPLOADS_DIR, f.arquivo)); } catch (e) {} }
-  db.prepare('DELETE FROM produtos WHERE id=?').run(req.params.id);
-  db.prepare('INSERT INTO produtos_auditoria (produto_id,usuario_id,acao,dados_antes) VALUES (?,?,?,?)')
-    .run(req.params.id, req.user.id, 'excluido', JSON.stringify(antes));
+  excluirProdutoDb(antes, req.user.id);
   ok(res, { id: req.params.id });
+});
+
+// ---------- ACOES EM MASSA (selecionar varios produtos na tela e exportar/excluir de uma vez) ----------
+app.post('/api/produtos/exportar', (req, res) => {
+  try {
+    const ids = Array.isArray(req.body.ids) ? req.body.ids.map(Number).filter(Boolean) : [];
+    if (!ids.length) return err(res, 'Nenhum produto selecionado');
+    const placeholders = ids.map(() => '?').join(',');
+    const produtos = db.prepare(`SELECT * FROM produtos WHERE id IN (${placeholders})`).all(...ids);
+    if (!produtos.length) return err(res, 'Nenhum produto encontrado pra esses ids');
+
+    const linhas = produtos.map(p => {
+      const investimentos = investimentosDoProduto(p.id);
+      const investStr = investimentos.map(i => `${i.socio_nome}: R$ ${i.valor.toFixed(2)}`).join(' | ');
+      return {
+        SKU: p.sku || '',
+        Nome: p.nome,
+        Categoria: p.categoria,
+        Condicao: p.condicao || '',
+        'IMEI/Serial': p.imei_serial || '',
+        'Qtd Total': p.quantidade_total,
+        'Qtd Vendida': p.quantidade_vendida,
+        'Qtd Restante': p.quantidade_total - p.quantidade_vendida,
+        'Data Compra': p.data_compra || '',
+        'Custo Total': p.custo_total,
+        'Custo Unitario': custoUnitario(p),
+        'Preco Anuncio': p.preco_anuncio ?? '',
+        'Lucro Minimo': p.lucro_minimo ?? '',
+        Status: statusProduto(p),
+        'Investido por socio': investStr,
+        Observacoes: p.obs || ''
+      };
+    });
+
+    const ws = XLSX.utils.json_to_sheet(linhas);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Produtos');
+    const buf = XLSX.write(wb, { type: 'buffer', bookType: 'xlsx' });
+
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    res.setHeader('Content-Disposition', `attachment; filename="kn-center-produtos.xlsx"`);
+    res.send(buf);
+  } catch (e) {
+    err(res, e.message, 400);
+  }
+});
+
+app.post('/api/produtos/excluir-em-massa', (req, res) => {
+  try {
+    const ids = Array.isArray(req.body.ids) ? req.body.ids.map(Number).filter(Boolean) : [];
+    if (!ids.length) return err(res, 'Nenhum produto selecionado');
+
+    let excluidos = 0;
+    const bloqueados = [];
+    for (const id of ids) {
+      const produto = db.prepare('SELECT * FROM produtos WHERE id=?').get(id);
+      if (!produto) continue;
+      if (produto.quantidade_vendida > 0) { bloqueados.push(produto.sku || produto.nome); continue; }
+      excluirProdutoDb(produto, req.user.id);
+      excluidos++;
+    }
+    ok(res, { excluidos, bloqueados });
+  } catch (e) {
+    err(res, e.message, 400);
+  }
 });
 
 app.get('/api/produtos/:id/historico', (req, res) => {

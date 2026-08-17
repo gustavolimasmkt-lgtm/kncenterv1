@@ -116,6 +116,11 @@ h2 { margin: 0 0 14px; }
 .meta-badge.nao { background: #fdeaea; color: #c73333; }
 .mini-tabela { width: 100%; font-size: 13px; }
 .mini-tabela td { padding: 4px 0; }
+.mini-tabela-vendas { display: block; overflow-x: auto; white-space: nowrap; -webkit-overflow-scrolling: touch; margin-top: 6px; }
+.mini-tabela-vendas td { padding: 6px 8px; border-top: 1px solid #eee; }
+.mini-tabela-vendas .btn-mini { padding: 6px 10px; min-height: 30px; }
+.mini-tabela-vendas td.pos { color: #1a8f4c; font-weight: 600; }
+.mini-tabela-vendas td.neg { color: #c73333; font-weight: 600; }
 
 /* ---- Mobile ---- */
 @media (max-width: 720px) {

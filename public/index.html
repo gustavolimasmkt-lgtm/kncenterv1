@@ -249,6 +249,14 @@
       <input id="prod-status-manual" placeholder="Ex: Troca (R$125 a receber)">
       <label>Observações</label>
       <textarea id="prod-obs"></textarea>
+
+      <div id="prod-vendas-box" class="oculto">
+        <label>Vendas registradas</label>
+        <table class="mini-tabela mini-tabela-vendas">
+          <tbody id="lista-vendas-produto"></tbody>
+        </table>
+      </div>
+
       <p id="prod-erro" class="erro"></p>
       <div class="modal-acoes">
         <button class="btn-primario" onclick="salvarProduto()">Salvar</button>
@@ -260,10 +268,12 @@
 
 <div id="modal-venda" class="modal oculto">
   <div class="modal-conteudo">
-    <div class="modal-header"><h3>Registrar venda</h3><span class="fechar" onclick="fecharModal('modal-venda')">&times;</span></div>
+    <div class="modal-header"><h3 id="modal-venda-titulo">Registrar venda</h3><span class="fechar" onclick="fecharModal('modal-venda')">&times;</span></div>
     <div class="modal-body">
       <input type="hidden" id="venda-produto-id">
+      <input type="hidden" id="venda-id">
       <p id="venda-produto-nome" class="destaque"></p>
+      <p id="venda-aviso-troca-travada" class="aviso oculto">Essa venda foi uma troca com transferência de custo já aplicada — só dá pra editar canal, data e observações aqui.</p>
       <label>Quantidade vendida</label>
       <input id="venda-qtd" type="number" min="1" value="1">
 

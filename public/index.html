@@ -67,6 +67,7 @@
     <nav class="menu">
       <button class="aba-btn ativa" data-aba="resumo" onclick="irPara('resumo')">📊 Resumo</button>
       <button class="aba-btn" data-aba="produtos" onclick="irPara('produtos')">📦 Produtos</button>
+      <button class="aba-btn" data-aba="vendas" onclick="irPara('vendas')">🧾 Vendas</button>
       <button class="aba-btn" data-aba="disponiveis" onclick="irPara('disponiveis')">🟢 Disponíveis</button>
       <button class="aba-btn" data-aba="mensal" onclick="irPara('mensal')">📅 Por Mês</button>
       <button class="aba-btn" data-aba="semanal" onclick="irPara('semanal')">🎯 Por Semana</button>
@@ -126,6 +127,32 @@
           <th>Preço anúncio</th><th>Status</th><th></th>
         </tr></thead>
         <tbody id="lista-produtos"></tbody>
+      </table>
+    </section>
+
+    <section id="aba-vendas" class="aba oculto">
+      <div class="aba-header">
+        <h2>Vendas</h2>
+        <span id="vendas-totais" class="filtro-contador"></span>
+      </div>
+      <div class="filtros">
+        <label class="filtro-data-label">De <input type="date" id="vendas-de" onchange="renderVendas()"></label>
+        <label class="filtro-data-label">Até <input type="date" id="vendas-ate" onchange="renderVendas()"></label>
+        <button class="btn-mini" onclick="limparFiltroVendas()">Tudo</button>
+        <input type="text" id="filtro-vendas-busca" placeholder="🔎 Buscar por produto, SKU ou canal..." oninput="renderVendas()">
+        <select id="filtro-vendas-tipo" onchange="renderVendas()">
+          <option value="">Vendas e trocas</option>
+          <option value="venda">Só vendas normais</option>
+          <option value="troca">Só trocas</option>
+        </select>
+        <span id="filtro-vendas-contador" class="filtro-contador"></span>
+      </div>
+      <table class="tabela">
+        <thead><tr>
+          <th>Data</th><th>Produto</th><th>Qtd</th><th>Valor</th><th>Custo</th><th>Lucro</th>
+          <th>Canal</th><th>Troca?</th><th></th>
+        </tr></thead>
+        <tbody id="lista-vendas"></tbody>
       </table>
     </section>
 

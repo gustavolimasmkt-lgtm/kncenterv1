@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover">
+<title>KN Center — Gestão</title>
+
+<link rel="icon" href="/favicon-32.png">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#1c1f26">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="KN Center">
+
+<link rel="stylesheet" href="/style.css">
+</head>
+<body>
+
+<div id="tela-auth" class="tela-auth">
+  <div class="card-auth">
+    <img src="/logo.png" alt="KN Center" class="logo-auth">
+    <p class="sub">Gestão de estoque e sócios</p>
+
+    <div id="form-login">
+      <h2>Entrar</h2>
+      <input id="login-email" type="email" placeholder="Email">
+      <input id="login-senha" type="password" placeholder="Senha">
+      <button onclick="fazerLogin()">Entrar</button>
+      <p class="link" onclick="mostrar('form-cadastro')">Não tem conta? Cadastre-se</p>
+      <p class="link" onclick="mostrar('form-recuperar')">Esqueci a senha</p>
+      <p id="login-erro" class="erro"></p>
+    </div>
+
+    <div id="form-cadastro" class="oculto">
+      <h2>Criar conta</h2>
+      <input id="cad-nome" placeholder="Seu nome">
+      <input id="cad-email" type="email" placeholder="Email">
+      <input id="cad-senha" type="password" placeholder="Senha (mín. 6 caracteres)">
+      <button onclick="fazerCadastro()">Cadastrar</button>
+      <p class="link" onclick="mostrar('form-login')">Já tem conta? Entrar</p>
+      <p id="cad-erro" class="erro"></p>
+      <div id="cad-codigo" class="oculto codigo-box">
+        <p><strong>Guarde este código de recuperação de senha:</strong></p>
+        <p id="cad-codigo-texto" class="codigo"></p>
+        <p class="aviso">Ele só aparece agora. Sem ele você não recupera a senha depois.</p>
+        <button onclick="mostrar('form-login')">Entendi, ir para o login</button>
+      </div>
+    </div>
+
+    <div id="form-recuperar" class="oculto">
+      <h2>Recuperar senha</h2>
+      <input id="rec-email" type="email" placeholder="Email">
+      <input id="rec-codigo" placeholder="Código de recuperação (ex: A1B2-C3D4-E5F6)">
+      <input id="rec-senha" type="password" placeholder="Nova senha">
+      <button onclick="recuperarSenha()">Trocar senha</button>
+      <p class="link" onclick="mostrar('form-login')">Voltar para o login</p>
+      <p id="rec-erro" class="erro"></p>
+    </div>
+  </div>
+</div>
+
+<div id="app" class="app oculto">
+  <header class="topo">
+    <div class="marca"><img src="/logo.png" alt="KN Center"></div>
+    <nav class="menu">
+      <button class="aba-btn ativa" data-aba="resumo" onclick="irPara('resumo')">📊 Resumo</button>
+      <button class="aba-btn" data-aba="produtos" onclick="irPara('produtos')">📦 Produtos</button>
+      <button class="aba-btn" data-aba="disponiveis" onclick="irPara('disponiveis')">🟢 Disponíveis</button>
+      <button class="aba-btn" data-aba="mensal" onclick="irPara('mensal')">📅 Por Mês</button>
+      <button class="aba-btn" data-aba="semanal" onclick="irPara('semanal')">🎯 Por Semana</button>
+      <button class="aba-btn" data-aba="extrato" onclick="irPara('extrato')">🤝 Extrato Sócios</button>
+      <button class="aba-btn" data-aba="lancamentos" onclick="irPara('lancamentos')">💵 Lançamentos</button>
+      <button class="aba-btn" data-aba="usuarios" onclick="irPara('usuarios')">👤 Usuários</button>
+    </nav>
+    <div class="user-box">
+      <span id="user-nome"></span>
+      <button class="btn-sair" onclick="fazerLogout()">Sair</button>
+    </div>
+  </header>
+
+  <main class="conteudo">
+
+    <section id="aba-resumo" class="aba">
+      <h2>Resumo Financeiro</h2>
+      <div id="cards-resumo" class="cards"></div>
+    </section>
+
+    <section id="aba-produtos" class="aba oculto">
+      <div class="aba-header">
+        <h2>Produtos</h2>
+        <div>
+          <button class="btn-primario" onclick="abrirModalProduto()">+ Novo produto</button>
+          <button class="btn-primario" onclick="document.getElementById('input-planilha').click()">📥 Importar planilha (.xlsx)</button>
+          <input type="file" id="input-planilha" accept=".xlsx" class="oculto" onchange="importarPlanilha(this.files[0])">
+        </div>
+      </div>
+      <div id="import-resultado" class="oculto bloco"></div>
+      <table class="tabela">
+        <thead><tr>
+          <th>SKU</th><th>Produto</th><th>Categoria</th><th>Estoque</th><th>Custo unit.</th>
+          <th>Preço anúncio</th><th>Status</th><th></th>
+        </tr></thead>
+        <tbody id="lista-produtos"></tbody>
+      </table>
+    </section>
+
+    <section id="aba-disponiveis" class="aba oculto">
+      <h2>Produtos Disponíveis</h2>
+      <table class="tabela">
+        <thead><tr>
+          <th>SKU</th><th>Produto</th><th>Qtd. restante</th><th>Custo restante</th>
+          <th>Anúncio</th><th>Margem anúncio</th><th>Margem mínima</th>
+        </tr></thead>
+        <tbody id="lista-disponiveis"></tbody>
+      </table>
+    </section>
+
+    <section id="aba-mensal" class="aba oculto">
+      <h2>Lucro por Mês</h2>
+      <div id="lista-mensal"></div>
+    </section>
+
+    <section id="aba-semanal" class="aba oculto">
+      <div class="aba-header">
+        <h2>Lucro por Semana</h2>
+        <div>
+          Meta por sócio/semana: R$ <input id="meta-semanal-input" type="number" step="0.01" style="width:100px">
+          <button class="btn-primario" onclick="salvarMetaSemanal()">Salvar</button>
+        </div>
+      </div>
+      <div id="lista-semanal"></div>
+    </section>
+
+    <section id="aba-extrato" class="aba oculto">
+      <h2>Extrato por Sócio</h2>
+      <div id="lista-extrato"></div>
+    </section>
+
+    <section id="aba-lancamentos" class="aba oculto">
+      <div class="aba-header">
+        <h2>Lançamentos Gerais</h2>
+        <button class="btn-primario" onclick="abrirModalLancamento()">+ Novo lançamento</button>
+      </div>
+      <table class="tabela">
+        <thead><tr><th>Data</th><th>Tipo</th><th>Descrição</th><th>Sócio/Conta</th><th>Valor</th><th></th></tr></thead>
+        <tbody id="lista-lancamentos"></tbody>
+      </table>
+    </section>
+
+    <section id="aba-usuarios" class="aba oculto">
+      <div class="aba-header">
+        <h2>Usuários com acesso</h2>
+        <button class="btn-primario" onclick="abrirModalUsuario()">+ Novo usuário</button>
+      </div>
+      <table class="tabela">
+        <thead><tr><th>Nome</th><th>Email</th><th>Desde</th><th></th></tr></thead>
+        <tbody id="lista-usuarios"></tbody>
+      </table>
+    </section>
+
+  </main>
+</div>
+
+<div id="modal-produto" class="modal oculto">
+  <div class="modal-conteudo">
+    <div class="modal-header">
+      <h3 id="modal-produto-titulo">Novo produto</h3>
+      <span class="fechar" onclick="fecharModal('modal-produto')">&times;</span>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="prod-id">
+      <label>Nome do produto</label>
+      <input id="prod-nome" placeholder="Ex: iPhone 13 256GB Azul">
+      <div class="linha">
+        <div>
+          <label>Categoria</label>
+          <select id="prod-categoria">
+            <option>iPhone</option><option>Android</option><option>TV</option>
+            <option>Acessório</option><option>Console/Videogame</option><option>Outro</option>
+          </select>
+        </div>
+        <div>
+          <label>SKU (opcional, gera automático)</label>
+          <input id="prod-sku" placeholder="KNB001">
+        </div>
+      </div>
+      <label>Condição (bateria, tela, defeitos etc.)</label>
+      <input id="prod-condicao" placeholder="Ex: Usado · 87% bateria">
+      <label>IMEI / número de série (opcional, evita duplicidade)</label>
+      <input id="prod-imei">
+      <div class="linha">
+        <div>
+          <label>Quantidade (lote — use 1 para item único)</label>
+          <input id="prod-qtd" type="number" min="1" value="1">
+        </div>
+        <div>
+          <label>Data da compra</label>
+          <input id="prod-data-compra" type="date">
+        </div>
+      </div>
+      <label>Custo total (R$)</label>
+      <input id="prod-custo" type="number" step="0.01" oninput="atualizarInvestimentosUI()">
+      <div id="investimentos-box"></div>
+      <div class="linha">
+        <div>
+          <label>Preço de anúncio (R$)</label>
+          <input id="prod-preco-anuncio" type="number" step="0.01">
+        </div>
+        <div>
+          <label>Lucro mínimo aceitável (R$)</label>
+          <input id="prod-lucro-minimo" type="number" step="0.01">
+        </div>
+      </div>
+      <label>Status manual (opcional — deixe em branco pra calcular automático pelo estoque)</label>
+      <input id="prod-status-manual" placeholder="Ex: Troca (R$125 a receber)">
+      <label>Observações</label>
+      <textarea id="prod-obs"></textarea>
+      <p id="prod-erro" class="erro"></p>
+      <div class="modal-acoes">
+        <button class="btn-primario" onclick="salvarProduto()">Salvar</button>
+        <button id="btn-excluir-produto" class="btn-perigo oculto" onclick="excluirProduto()">Excluir</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="modal-venda" class="modal oculto">
+  <div class="modal-conteudo">
+    <div class="modal-header"><h3>Registrar venda</h3><span class="fechar" onclick="fecharModal('modal-venda')">&times;</span></div>
+    <div class="modal-body">
+      <input type="hidden" id="venda-produto-id">
+      <p id="venda-produto-nome" class="destaque"></p>
+      <label>Quantidade vendida</label>
+      <input id="venda-qtd" type="number" min="1" value="1">
+      <label>Valor vendido (R$)</label>
+      <input id="venda-valor" type="number" step="0.01">
+      <label>Canal de venda</label>
+      <input id="venda-canal" placeholder="Ex: Pix, Cartão, Troca...">
+      <label>Data da venda</label>
+      <input id="venda-data" type="date">
+      <label>Observações</label>
+      <textarea id="venda-obs"></textarea>
+      <p id="venda-erro" class="erro"></p>
+      <div class="modal-acoes"><button class="btn-primario" onclick="salvarVenda()">Confirmar venda</button></div>
+    </div>
+  </div>
+</div>
+
+<div id="modal-lancamento" class="modal oculto">
+  <div class="modal-conteudo">
+    <div class="modal-header"><h3>Novo lançamento</h3><span class="fechar" onclick="fecharModal('modal-lancamento')">&times;</span></div>
+    <div class="modal-body">
+      <label>Tipo</label>
+      <select id="lanc-tipo"><option value="saida">Saída (despesa)</option><option value="entrada">Entrada (receita)</option></select>
+      <label>Descrição</label>
+      <input id="lanc-descricao" placeholder="Ex: Aluguel, Ads Instagram...">
+      <label>Valor (R$)</label>
+      <input id="lanc-valor" type="number" step="0.01">
+      <label>Sócio/Conta (opcional — deixe em branco pra despesa da loja)</label>
+      <select id="lanc-socio"><option value="">Loja (geral)</option></select>
+      <label>Data</label>
+      <input id="lanc-data" type="date">
+      <p id="lanc-erro" class="erro"></p>
+      <div class="modal-acoes"><button class="btn-primario" onclick="salvarLancamento()">Salvar</button></div>
+    </div>
+  </div>
+</div>
+
+<div id="modal-usuario" class="modal oculto">
+  <div class="modal-conteudo">
+    <div class="modal-header"><h3>Novo usuário</h3><span class="fechar" onclick="fecharModal('modal-usuario')">&times;</span></div>
+    <div class="modal-body">
+      <div id="usuario-form">
+        <label>Nome</label>
+        <input id="user-nome-novo" placeholder="Ex: Kauã">
+        <label>Email</label>
+        <input id="user-email-novo" type="email">
+        <label>Senha (mín. 6 caracteres)</label>
+        <input id="user-senha-novo" type="password">
+        <p id="user-erro" class="erro"></p>
+        <div class="modal-acoes"><button class="btn-primario" onclick="salvarUsuario()">Cadastrar</button></div>
+      </div>
+      <div id="user-codigo" class="oculto codigo-box">
+        <p><strong>Guarde este código de recuperação de senha da pessoa nova:</strong></p>
+        <p id="user-codigo-texto" class="codigo"></p>
+        <p class="aviso">Ele só aparece agora. Manda esse código pra pessoa por fora (whatsapp, etc).</p>
+        <button onclick="fecharModal('modal-usuario')">Entendi</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,128 @@
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+  background: #f4f5f7; color: #1c1f26;
+  overscroll-behavior-y: contain;
+}
+input, select, textarea, button { font-family: inherit; font-size: 16px; }
+button { touch-action: manipulation; }
+.oculto { display: none !important; }
+
+/* ---- Auth ---- */
+.tela-auth { display: flex; align-items: center; justify-content: center; min-height: 100vh; min-height: 100dvh; padding: 16px; }
+.card-auth { background: #fff; border-radius: 14px; padding: 32px; width: 100%; max-width: 380px; box-shadow: 0 4px 24px rgba(0,0,0,.08); }
+.logo-auth { display: block; height: 72px; width: auto; margin: 0 auto 10px; }
+.card-auth h1 { margin: 0 0 2px; font-size: 28px; letter-spacing: .5px; }
+.card-auth .sub { margin: 0 0 20px; color: #666; font-size: 14px; text-align: center; }
+.card-auth h2 { font-size: 18px; margin-bottom: 14px; }
+.card-auth input { width: 100%; padding: 14px 12px; margin-bottom: 10px; border: 1px solid #d9dce1; border-radius: 8px; min-height: 44px; }
+.card-auth button { width: 100%; padding: 14px 12px; min-height: 46px; background: #1c1f26; color: #fff; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; }
+.card-auth .link { text-align: center; color: #4a6cf7; font-size: 14px; cursor: pointer; margin: 14px 0 0; padding: 4px; }
+.erro { color: #d33; font-size: 13px; min-height: 18px; margin-top: 8px; }
+.codigo-box { margin-top: 16px; background: #fff8e1; border: 1px solid #f0c14b; border-radius: 8px; padding: 14px; }
+.codigo { font-size: 20px; font-weight: 700; letter-spacing: 1px; text-align: center; margin: 8px 0; }
+.aviso { font-size: 12px; color: #8a6d00; }
+
+/* ---- App layout ---- */
+.app { min-height: 100vh; min-height: 100dvh; }
+.topo {
+  display: flex; align-items: center; gap: 16px; background: #1c1f26; color: #fff;
+  padding: 10px 20px; flex-wrap: wrap;
+  padding-top: calc(10px + env(safe-area-inset-top));
+  padding-left: calc(20px + env(safe-area-inset-left));
+  padding-right: calc(20px + env(safe-area-inset-right));
+  position: sticky; top: 0; z-index: 50;
+}
+.marca { display: flex; align-items: center; }
+.marca img { height: 30px; width: auto; display: block; }
+.menu { display: flex; gap: 4px; flex-wrap: nowrap; flex: 1; overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
+.menu::-webkit-scrollbar { display: none; }
+.aba-btn { background: transparent; border: none; color: #cfd3da; padding: 10px 12px; min-height: 40px; border-radius: 8px; cursor: pointer; font-size: 14px; white-space: nowrap; flex: 0 0 auto; }
+.aba-btn:hover { background: #2c303a; }
+.aba-btn.ativa { background: #4a6cf7; color: #fff; }
+.user-box { display: flex; align-items: center; gap: 10px; font-size: 14px; flex: 0 0 auto; }
+.btn-sair { background: #2c303a; color: #fff; border: none; padding: 8px 14px; min-height: 36px; border-radius: 6px; cursor: pointer; }
+
+.conteudo {
+  padding: 20px; max-width: 1200px; margin: 0 auto;
+  padding-left: calc(20px + env(safe-area-inset-left));
+  padding-right: calc(20px + env(safe-area-inset-right));
+  padding-bottom: calc(20px + env(safe-area-inset-bottom));
+}
+.aba-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; flex-wrap: wrap; gap: 10px; }
+h2 { margin: 0 0 14px; }
+
+/* ---- Cards resumo ---- */
+.cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; }
+.card { background: #fff; border-radius: 12px; padding: 16px 18px; box-shadow: 0 1px 4px rgba(0,0,0,.06); }
+.card .label { font-size: 13px; color: #666; margin-bottom: 6px; }
+.card .valor { font-size: 22px; font-weight: 700; }
+.card .valor.pos { color: #1a8f4c; }
+.card .valor.neg { color: #c73333; }
+
+/* ---- Table ---- */
+.tabela { width: 100%; border-collapse: collapse; background: #fff; border-radius: 12px; overflow: hidden; box-shadow: 0 1px 4px rgba(0,0,0,.06); }
+.tabela th { text-align: left; background: #f0f1f4; padding: 10px 12px; font-size: 13px; color: #555; }
+.tabela td { padding: 10px 12px; border-top: 1px solid #eee; font-size: 14px; }
+.tabela tr:hover td { background: #fafbfd; }
+.btn-mini { background: #eef1ff; color: #3a51c9; border: none; padding: 8px 12px; min-height: 34px; border-radius: 6px; cursor: pointer; font-size: 12px; margin-right: 4px; }
+.btn-mini.venda { background: #e6f7ec; color: #1a8f4c; }
+.tag { display: inline-block; padding: 3px 8px; border-radius: 20px; font-size: 12px; font-weight: 600; }
+.tag.disp { background: #e6f7ec; color: #1a8f4c; }
+.tag.vendido { background: #eef0f3; color: #666; }
+.tag.outro { background: #fff3d6; color: #8a6d00; }
+
+/* ---- Buttons ---- */
+.btn-primario { background: #4a6cf7; color: #fff; border: none; padding: 11px 16px; min-height: 44px; border-radius: 8px; cursor: pointer; font-weight: 600; }
+.btn-perigo { background: #fdeaea; color: #c73333; border: none; padding: 11px 16px; min-height: 44px; border-radius: 8px; cursor: pointer; font-weight: 600; }
+
+/* ---- Modal ---- */
+.modal { position: fixed; inset: 0; background: rgba(0,0,0,.5); display: flex; align-items: flex-start; justify-content: center; overflow-y: auto; padding: 30px 16px; z-index: 100; }
+.modal-conteudo { background: #fff; border-radius: 12px; width: 100%; max-width: 520px; }
+.modal-header { display: flex; justify-content: space-between; align-items: center; padding: 16px 20px; border-bottom: 1px solid #eee; position: sticky; top: 0; background: #fff; border-radius: 12px 12px 0 0; }
+.modal-header h3 { margin: 0; }
+.fechar { cursor: pointer; font-size: 26px; color: #888; padding: 4px 8px; }
+.modal-body { padding: 18px 20px calc(18px + env(safe-area-inset-bottom)); }
+.modal-body label { display: block; font-size: 13px; color: #555; margin: 10px 0 4px; }
+.modal-body input, .modal-body select, .modal-body textarea { width: 100%; padding: 12px 10px; min-height: 44px; border: 1px solid #d9dce1; border-radius: 8px; }
+.modal-body textarea { min-height: 60px; }
+.linha { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.modal-acoes { display: flex; gap: 10px; margin-top: 18px; }
+.destaque { font-weight: 700; font-size: 16px; }
+.investimento-linha { display: flex; align-items: center; gap: 8px; margin-top: 6px; }
+.investimento-linha span { flex: 0 0 90px; font-size: 13px; }
+.investimento-linha input { flex: 1; }
+.soma-investimentos { font-size: 13px; margin-top: 6px; color: #666; }
+.soma-investimentos.ok { color: #1a8f4c; }
+.soma-investimentos.erro { color: #c73333; }
+
+/* ---- Blocos de dashboard (mensal/semanal/extrato) ---- */
+.bloco { background: #fff; border-radius: 12px; padding: 16px 18px; margin-bottom: 12px; box-shadow: 0 1px 4px rgba(0,0,0,.06); }
+.bloco-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; flex-wrap: wrap; gap: 8px; }
+.bloco-header h3 { margin: 0; font-size: 16px; }
+.meta-badge { font-size: 12px; padding: 4px 10px; border-radius: 20px; font-weight: 600; }
+.meta-badge.sim { background: #e6f7ec; color: #1a8f4c; }
+.meta-badge.nao { background: #fdeaea; color: #c73333; }
+.mini-tabela { width: 100%; font-size: 13px; }
+.mini-tabela td { padding: 4px 0; }
+
+/* ---- Mobile ---- */
+@media (max-width: 720px) {
+  .linha { grid-template-columns: 1fr; }
+  .topo { gap: 8px; padding-top: calc(8px + env(safe-area-inset-top)); }
+  .marca img { height: 26px; }
+  .menu { justify-content: flex-start; width: 100%; order: 3; }
+  .user-box { margin-left: auto; }
+  .tabela { display: block; overflow-x: auto; white-space: nowrap; -webkit-overflow-scrolling: touch; }
+  input, select, textarea, button { font-size: 16px; }
+  .aba-header { gap: 8px; }
+  .aba-header > div { display: flex; gap: 8px; flex-wrap: wrap; }
+
+  /* modal vira folha de baixo pra cima, ocupando a tela toda — igual app nativo */
+  .modal { padding: 0; align-items: flex-end; }
+  .modal-conteudo { max-width: 100%; border-radius: 16px 16px 0 0; max-height: 92dvh; display: flex; flex-direction: column; }
+  .modal-body { overflow-y: auto; }
+  .modal-acoes { position: sticky; bottom: 0; background: #fff; padding-top: 10px; margin-top: 12px; }
+  .modal-acoes button { flex: 1; }
+}

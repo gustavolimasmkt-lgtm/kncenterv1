@@ -101,11 +101,18 @@ async function irPara(aba) {
 
 // ---------- Resumo ----------
 async function carregarResumo() {
-  const r = await api('GET', '/api/dashboard/resumo');
+  const de = $('resumo-de').value, ate = $('resumo-ate').value;
+  const qs = new URLSearchParams();
+  if (de) qs.set('de', de);
+  if (ate) qs.set('ate', ate);
+  const r = await api('GET', '/api/dashboard/resumo' + (qs.toString() ? '?' + qs.toString() : ''));
+
+  $('resumo-aviso-periodo').classList.toggle('oculto', !r.periodo_filtrado);
+
   const cards = [
-    ['💰 Total Investido', fmt(r.total_investido), ''],
-    ['📦 Produtos em Aberto', r.produtos_em_aberto, ''],
-    ['✅ Produtos Esgotados/Vendidos', r.produtos_esgotados, ''],
+    ['💰 Total Investido (atual)', fmt(r.total_investido), ''],
+    ['📦 Produtos em Aberto (atual)', r.produtos_em_aberto, ''],
+    ['✅ Produtos Esgotados/Vendidos (atual)', r.produtos_esgotados, ''],
     ['💵 Total Arrecadado', fmt(r.total_arrecadado), ''],
     ['📈 Lucro Real Total', fmt(r.lucro_real_total), r.lucro_real_total >= 0 ? 'pos' : 'neg'],
     ['📉 Lucro Mín. Estimado (Em Aberto)', fmt(r.lucro_min_estimado_aberto), ''],
@@ -115,6 +122,12 @@ async function carregarResumo() {
   r.por_socio.forEach(s => cards.push([`👤 Lucro — ${s.socio_nome}`, fmt(s.lucro), s.lucro >= 0 ? 'pos' : 'neg']));
   $('cards-resumo').innerHTML = cards.map(([l, v, cls]) =>
     `<div class="card"><div class="label">${l}</div><div class="valor ${cls}">${v}</div></div>`).join('');
+}
+
+function limparFiltroResumo() {
+  $('resumo-de').value = '';
+  $('resumo-ate').value = '';
+  carregarResumo();
 }
 
 // ---------- Produtos ----------
@@ -275,23 +288,38 @@ function abrirModalVenda(id) {
   $('venda-produto-nome').textContent = `${p.nome} (restam ${p.quantidade_restante})`;
   $('venda-qtd').value = 1;
   $('venda-qtd').max = p.quantidade_restante;
+  $('venda-eh-troca').checked = false;
   $('venda-valor').value = '';
   $('venda-canal').value = '';
   $('venda-data').value = new Date().toISOString().slice(0, 10);
   $('venda-obs').value = '';
+  const selDestino = $('venda-destino');
+  selDestino.innerHTML = '<option value="">— nenhum (só dar baixa, sem transferir custo) —</option>' +
+    PRODUTOS_CACHE.filter(x => x.id !== id).map(x => `<option value="${x.id}">${x.sku ? x.sku + ' — ' : ''}${x.nome}</option>`).join('');
+  alternarTroca();
   $('modal-venda').classList.remove('oculto');
+}
+
+function alternarTroca() {
+  const eh = $('venda-eh-troca').checked;
+  $('venda-valor-box').classList.toggle('oculto', eh);
+  $('venda-destino-box').classList.toggle('oculto', !eh);
+  if (eh) $('venda-valor').value = '';
 }
 
 async function salvarVenda() {
   $('venda-erro').textContent = '';
   const id = $('venda-produto-id').value;
+  const ehTroca = $('venda-eh-troca').checked;
   try {
     await api('POST', `/api/produtos/${id}/vender`, {
       quantidade: $('venda-qtd').value,
-      valor_vendido: $('venda-valor').value,
+      valor_vendido: $('venda-valor').value || 0,
       canal_venda: $('venda-canal').value,
       data_venda: $('venda-data').value,
-      obs: $('venda-obs').value
+      obs: $('venda-obs').value,
+      eh_troca: ehTroca,
+      produto_destino_id: ehTroca ? ($('venda-destino').value || null) : null
     });
     fecharModal('modal-venda');
     await carregarProdutos();

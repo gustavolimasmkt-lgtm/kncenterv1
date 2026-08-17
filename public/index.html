@@ -121,8 +121,15 @@
         </select>
         <span id="filtro-produtos-contador" class="filtro-contador"></span>
       </div>
+      <div id="produtos-acoes-massa" class="filtros oculto">
+        <span id="produtos-selecionados-contador" class="filtro-contador" style="margin-left:0"></span>
+        <button class="btn-mini" onclick="limparSelecaoProdutos()">Limpar seleção</button>
+        <button class="btn-primario" onclick="exportarProdutosSelecionados()">📤 Exportar selecionados (.xlsx)</button>
+        <button class="btn-perigo" onclick="excluirProdutosSelecionados()">🗑️ Excluir selecionados</button>
+      </div>
       <table class="tabela">
         <thead><tr>
+          <th><input type="checkbox" id="check-todos-produtos" onchange="alternarTodosProdutos(this.checked)"></th>
           <th>SKU</th><th>Produto</th><th>Categoria</th><th>Estoque</th><th>Custo unit.</th>
           <th>Preço anúncio</th><th>Status</th><th></th>
         </tr></thead>

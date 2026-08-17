@@ -1,134 +1,343 @@
-* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-html { -webkit-text-size-adjust: 100%; }
-body {
-  margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
-  background: #f4f5f7; color: #1c1f26;
-  overscroll-behavior-y: contain;
-}
-input, select, textarea, button { font-family: inherit; font-size: 16px; }
-button { touch-action: manipulation; }
-.oculto { display: none !important; }
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover">
+<title>KN Center — Gestão</title>
 
-/* ---- Auth ---- */
-.tela-auth { display: flex; align-items: center; justify-content: center; min-height: 100vh; min-height: 100dvh; padding: 16px; }
-.card-auth { background: #fff; border-radius: 14px; padding: 32px; width: 100%; max-width: 380px; box-shadow: 0 4px 24px rgba(0,0,0,.08); }
-.logo-auth { display: block; height: 72px; width: auto; margin: 0 auto 10px; }
-.card-auth h1 { margin: 0 0 2px; font-size: 28px; letter-spacing: .5px; }
-.card-auth .sub { margin: 0 0 20px; color: #666; font-size: 14px; text-align: center; }
-.card-auth h2 { font-size: 18px; margin-bottom: 14px; }
-.card-auth input { width: 100%; padding: 14px 12px; margin-bottom: 10px; border: 1px solid #d9dce1; border-radius: 8px; min-height: 44px; }
-.card-auth button { width: 100%; padding: 14px 12px; min-height: 46px; background: #1c1f26; color: #fff; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; }
-.card-auth .link { text-align: center; color: #4a6cf7; font-size: 14px; cursor: pointer; margin: 14px 0 0; padding: 4px; }
-.erro { color: #d33; font-size: 13px; min-height: 18px; margin-top: 8px; }
-.codigo-box { margin-top: 16px; background: #fff8e1; border: 1px solid #f0c14b; border-radius: 8px; padding: 14px; }
-.codigo { font-size: 20px; font-weight: 700; letter-spacing: 1px; text-align: center; margin: 8px 0; }
-.aviso { font-size: 12px; color: #8a6d00; }
+<link rel="icon" href="/favicon-32.png">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#1c1f26">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="KN Center">
 
-/* ---- App layout ---- */
-.app { min-height: 100vh; min-height: 100dvh; }
-.topo {
-  display: flex; align-items: center; gap: 16px; background: #1c1f26; color: #fff;
-  padding: 10px 20px; flex-wrap: wrap;
-  padding-top: calc(10px + env(safe-area-inset-top));
-  padding-left: calc(20px + env(safe-area-inset-left));
-  padding-right: calc(20px + env(safe-area-inset-right));
-  position: sticky; top: 0; z-index: 50;
-}
-.marca { display: flex; align-items: center; }
-.marca img { height: 30px; width: auto; display: block; }
-.menu { display: flex; gap: 4px; flex-wrap: nowrap; flex: 1; overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
-.menu::-webkit-scrollbar { display: none; }
-.aba-btn { background: transparent; border: none; color: #cfd3da; padding: 10px 12px; min-height: 40px; border-radius: 8px; cursor: pointer; font-size: 14px; white-space: nowrap; flex: 0 0 auto; }
-.aba-btn:hover { background: #2c303a; }
-.aba-btn.ativa { background: #4a6cf7; color: #fff; }
-.user-box { display: flex; align-items: center; gap: 10px; font-size: 14px; flex: 0 0 auto; }
-.btn-sair { background: #2c303a; color: #fff; border: none; padding: 8px 14px; min-height: 36px; border-radius: 6px; cursor: pointer; }
+<link rel="stylesheet" href="/style.css">
+</head>
+<body>
 
-.conteudo {
-  padding: 20px; max-width: 1200px; margin: 0 auto;
-  padding-left: calc(20px + env(safe-area-inset-left));
-  padding-right: calc(20px + env(safe-area-inset-right));
-  padding-bottom: calc(20px + env(safe-area-inset-bottom));
-}
-.aba-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; flex-wrap: wrap; gap: 10px; }
-h2 { margin: 0 0 14px; }
+<div id="tela-auth" class="tela-auth">
+  <div class="card-auth">
+    <img src="/logo.png" alt="KN Center" class="logo-auth">
+    <p class="sub">Gestão de estoque e sócios</p>
 
-/* ---- Cards resumo ---- */
-.cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; }
-.card { background: #fff; border-radius: 12px; padding: 16px 18px; box-shadow: 0 1px 4px rgba(0,0,0,.06); }
-.card .label { font-size: 13px; color: #666; margin-bottom: 6px; }
-.card .valor { font-size: 22px; font-weight: 700; }
-.card .valor.pos { color: #1a8f4c; }
-.card .valor.neg { color: #c73333; }
+    <div id="form-login">
+      <h2>Entrar</h2>
+      <input id="login-email" type="email" placeholder="Email">
+      <input id="login-senha" type="password" placeholder="Senha">
+      <button onclick="fazerLogin()">Entrar</button>
+      <p class="link" onclick="mostrar('form-cadastro')">Não tem conta? Cadastre-se</p>
+      <p class="link" onclick="mostrar('form-recuperar')">Esqueci a senha</p>
+      <p id="login-erro" class="erro"></p>
+    </div>
 
-/* ---- Filtros ---- */
-.filtros { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 12px; }
-.filtros input, .filtros select { padding: 9px 10px; min-height: 40px; border: 1px solid #d9dce1; border-radius: 8px; background: #fff; }
-.filtros input[type="text"] { flex: 1 1 220px; min-width: 160px; }
-.filtro-contador { font-size: 13px; color: #777; margin-left: auto; white-space: nowrap; }
+    <div id="form-cadastro" class="oculto">
+      <h2>Criar conta</h2>
+      <input id="cad-nome" placeholder="Seu nome">
+      <input id="cad-email" type="email" placeholder="Email">
+      <input id="cad-senha" type="password" placeholder="Senha (mín. 6 caracteres)">
+      <button onclick="fazerCadastro()">Cadastrar</button>
+      <p class="link" onclick="mostrar('form-login')">Já tem conta? Entrar</p>
+      <p id="cad-erro" class="erro"></p>
+      <div id="cad-codigo" class="oculto codigo-box">
+        <p><strong>Guarde este código de recuperação de senha:</strong></p>
+        <p id="cad-codigo-texto" class="codigo"></p>
+        <p class="aviso">Ele só aparece agora. Sem ele você não recupera a senha depois.</p>
+        <button onclick="mostrar('form-login')">Entendi, ir para o login</button>
+      </div>
+    </div>
 
-/* ---- Table ---- */
-.tabela { width: 100%; border-collapse: collapse; background: #fff; border-radius: 12px; overflow: hidden; box-shadow: 0 1px 4px rgba(0,0,0,.06); }
-.tabela th { text-align: left; background: #f0f1f4; padding: 10px 12px; font-size: 13px; color: #555; }
-.tabela td { padding: 10px 12px; border-top: 1px solid #eee; font-size: 14px; }
-.tabela tr:hover td { background: #fafbfd; }
-.btn-mini { background: #eef1ff; color: #3a51c9; border: none; padding: 8px 12px; min-height: 34px; border-radius: 6px; cursor: pointer; font-size: 12px; margin-right: 4px; }
-.btn-mini.venda { background: #e6f7ec; color: #1a8f4c; }
-.tag { display: inline-block; padding: 3px 8px; border-radius: 20px; font-size: 12px; font-weight: 600; }
-.tag.disp { background: #e6f7ec; color: #1a8f4c; }
-.tag.vendido { background: #eef0f3; color: #666; }
-.tag.outro { background: #fff3d6; color: #8a6d00; }
+    <div id="form-recuperar" class="oculto">
+      <h2>Recuperar senha</h2>
+      <input id="rec-email" type="email" placeholder="Email">
+      <input id="rec-codigo" placeholder="Código de recuperação (ex: A1B2-C3D4-E5F6)">
+      <input id="rec-senha" type="password" placeholder="Nova senha">
+      <button onclick="recuperarSenha()">Trocar senha</button>
+      <p class="link" onclick="mostrar('form-login')">Voltar para o login</p>
+      <p id="rec-erro" class="erro"></p>
+    </div>
+  </div>
+</div>
 
-/* ---- Buttons ---- */
-.btn-primario { background: #4a6cf7; color: #fff; border: none; padding: 11px 16px; min-height: 44px; border-radius: 8px; cursor: pointer; font-weight: 600; }
-.btn-perigo { background: #fdeaea; color: #c73333; border: none; padding: 11px 16px; min-height: 44px; border-radius: 8px; cursor: pointer; font-weight: 600; }
+<div id="app" class="app oculto">
+  <header class="topo">
+    <div class="marca"><img src="/logo.png" alt="KN Center"></div>
+    <nav class="menu">
+      <button class="aba-btn ativa" data-aba="resumo" onclick="irPara('resumo')">📊 Resumo</button>
+      <button class="aba-btn" data-aba="produtos" onclick="irPara('produtos')">📦 Produtos</button>
+      <button class="aba-btn" data-aba="disponiveis" onclick="irPara('disponiveis')">🟢 Disponíveis</button>
+      <button class="aba-btn" data-aba="mensal" onclick="irPara('mensal')">📅 Por Mês</button>
+      <button class="aba-btn" data-aba="semanal" onclick="irPara('semanal')">🎯 Por Semana</button>
+      <button class="aba-btn" data-aba="extrato" onclick="irPara('extrato')">🤝 Extrato Sócios</button>
+      <button class="aba-btn" data-aba="lancamentos" onclick="irPara('lancamentos')">💵 Lançamentos</button>
+      <button class="aba-btn" data-aba="usuarios" onclick="irPara('usuarios')">👤 Usuários</button>
+    </nav>
+    <div class="user-box">
+      <span id="user-nome"></span>
+      <button class="btn-sair" onclick="fazerLogout()">Sair</button>
+    </div>
+  </header>
 
-/* ---- Modal ---- */
-.modal { position: fixed; inset: 0; background: rgba(0,0,0,.5); display: flex; align-items: flex-start; justify-content: center; overflow-y: auto; padding: 30px 16px; z-index: 100; }
-.modal-conteudo { background: #fff; border-radius: 12px; width: 100%; max-width: 520px; }
-.modal-header { display: flex; justify-content: space-between; align-items: center; padding: 16px 20px; border-bottom: 1px solid #eee; position: sticky; top: 0; background: #fff; border-radius: 12px 12px 0 0; }
-.modal-header h3 { margin: 0; }
-.fechar { cursor: pointer; font-size: 26px; color: #888; padding: 4px 8px; }
-.modal-body { padding: 18px 20px calc(18px + env(safe-area-inset-bottom)); }
-.modal-body label { display: block; font-size: 13px; color: #555; margin: 10px 0 4px; }
-.modal-body input, .modal-body select, .modal-body textarea { width: 100%; padding: 12px 10px; min-height: 44px; border: 1px solid #d9dce1; border-radius: 8px; }
-.modal-body textarea { min-height: 60px; }
-.linha { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-.modal-acoes { display: flex; gap: 10px; margin-top: 18px; }
-.destaque { font-weight: 700; font-size: 16px; }
-.investimento-linha { display: flex; align-items: center; gap: 8px; margin-top: 6px; }
-.investimento-linha span { flex: 0 0 90px; font-size: 13px; }
-.investimento-linha input { flex: 1; }
-.soma-investimentos { font-size: 13px; margin-top: 6px; color: #666; }
-.soma-investimentos.ok { color: #1a8f4c; }
-.soma-investimentos.erro { color: #c73333; }
+  <main class="conteudo">
 
-/* ---- Blocos de dashboard (mensal/semanal/extrato) ---- */
-.bloco { background: #fff; border-radius: 12px; padding: 16px 18px; margin-bottom: 12px; box-shadow: 0 1px 4px rgba(0,0,0,.06); }
-.bloco-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; flex-wrap: wrap; gap: 8px; }
-.bloco-header h3 { margin: 0; font-size: 16px; }
-.meta-badge { font-size: 12px; padding: 4px 10px; border-radius: 20px; font-weight: 600; }
-.meta-badge.sim { background: #e6f7ec; color: #1a8f4c; }
-.meta-badge.nao { background: #fdeaea; color: #c73333; }
-.mini-tabela { width: 100%; font-size: 13px; }
-.mini-tabela td { padding: 4px 0; }
+    <section id="aba-resumo" class="aba">
+      <div class="aba-header">
+        <h2>Resumo Financeiro</h2>
+        <div class="filtros" style="margin-bottom:0">
+          <label class="filtro-data-label">De <input type="date" id="resumo-de" onchange="carregarResumo()"></label>
+          <label class="filtro-data-label">Até <input type="date" id="resumo-ate" onchange="carregarResumo()"></label>
+          <button class="btn-mini" onclick="limparFiltroResumo()">Tudo</button>
+        </div>
+      </div>
+      <p id="resumo-aviso-periodo" class="aviso oculto">Lucro, arrecadado e lançamentos abaixo estão filtrados pelo período. Investido e estoque em aberto sempre mostram o estado atual.</p>
+      <div id="cards-resumo" class="cards"></div>
+    </section>
 
-/* ---- Mobile ---- */
-@media (max-width: 720px) {
-  .linha { grid-template-columns: 1fr; }
-  .topo { gap: 8px; padding-top: calc(8px + env(safe-area-inset-top)); }
-  .marca img { height: 26px; }
-  .menu { justify-content: flex-start; width: 100%; order: 3; }
-  .user-box { margin-left: auto; }
-  .tabela { display: block; overflow-x: auto; white-space: nowrap; -webkit-overflow-scrolling: touch; }
-  input, select, textarea, button { font-size: 16px; }
-  .aba-header { gap: 8px; }
-  .aba-header > div { display: flex; gap: 8px; flex-wrap: wrap; }
+    <section id="aba-produtos" class="aba oculto">
+      <div class="aba-header">
+        <h2>Produtos</h2>
+        <div>
+          <button class="btn-primario" onclick="abrirModalProduto()">+ Novo produto</button>
+          <button class="btn-primario" onclick="document.getElementById('input-planilha').click()">📥 Importar planilha (.xlsx)</button>
+          <input type="file" id="input-planilha" accept=".xlsx" class="oculto" onchange="importarPlanilha(this.files[0])">
+        </div>
+      </div>
+      <div id="import-resultado" class="oculto bloco"></div>
+      <div class="filtros">
+        <input type="text" id="filtro-produtos-busca" placeholder="🔎 Buscar por nome ou SKU..." oninput="renderProdutos()">
+        <select id="filtro-produtos-categoria" onchange="renderProdutos()">
+          <option value="">Todas categorias</option>
+          <option>iPhone</option><option>Android</option><option>TV</option>
+          <option>Acessório</option><option>Console/Videogame</option><option>Outro</option>
+        </select>
+        <select id="filtro-produtos-status" onchange="renderProdutos()">
+          <option value="">Todos status</option>
+          <option value="disp">Disponível</option>
+          <option value="vendido">Vendido / Esgotado</option>
+          <option value="outro">Outros (troca, etc.)</option>
+        </select>
+        <span id="filtro-produtos-contador" class="filtro-contador"></span>
+      </div>
+      <table class="tabela">
+        <thead><tr>
+          <th>SKU</th><th>Produto</th><th>Categoria</th><th>Estoque</th><th>Custo unit.</th>
+          <th>Preço anúncio</th><th>Status</th><th></th>
+        </tr></thead>
+        <tbody id="lista-produtos"></tbody>
+      </table>
+    </section>
 
-  /* modal vira folha de baixo pra cima, ocupando a tela toda — igual app nativo */
-  .modal { padding: 0; align-items: flex-end; }
-  .modal-conteudo { max-width: 100%; border-radius: 16px 16px 0 0; max-height: 92dvh; display: flex; flex-direction: column; }
-  .modal-body { overflow-y: auto; }
-  .modal-acoes { position: sticky; bottom: 0; background: #fff; padding-top: 10px; margin-top: 12px; }
-  .modal-acoes button { flex: 1; }
-}
+    <section id="aba-disponiveis" class="aba oculto">
+      <h2>Produtos Disponíveis</h2>
+      <table class="tabela">
+        <thead><tr>
+          <th>SKU</th><th>Produto</th><th>Qtd. restante</th><th>Custo restante</th>
+          <th>Anúncio</th><th>Margem anúncio</th><th>Margem mínima</th>
+        </tr></thead>
+        <tbody id="lista-disponiveis"></tbody>
+      </table>
+    </section>
+
+    <section id="aba-mensal" class="aba oculto">
+      <h2>Lucro por Mês</h2>
+      <div id="lista-mensal"></div>
+    </section>
+
+    <section id="aba-semanal" class="aba oculto">
+      <div class="aba-header">
+        <h2>Lucro por Semana</h2>
+        <div>
+          Meta por sócio/semana: R$ <input id="meta-semanal-input" type="number" step="0.01" style="width:100px">
+          <button class="btn-primario" onclick="salvarMetaSemanal()">Salvar</button>
+        </div>
+      </div>
+      <div id="lista-semanal"></div>
+    </section>
+
+    <section id="aba-extrato" class="aba oculto">
+      <h2>Extrato por Sócio</h2>
+      <div id="lista-extrato"></div>
+    </section>
+
+    <section id="aba-lancamentos" class="aba oculto">
+      <div class="aba-header">
+        <h2>Lançamentos Gerais</h2>
+        <button class="btn-primario" onclick="abrirModalLancamento()">+ Novo lançamento</button>
+      </div>
+      <div class="filtros">
+        <select id="filtro-lanc-tipo" onchange="renderLancamentos()">
+          <option value="">Entradas e saídas</option>
+          <option value="entrada">Só entradas</option>
+          <option value="saida">Só saídas</option>
+        </select>
+        <select id="filtro-lanc-socio" onchange="renderLancamentos()"><option value="">Todas as contas</option></select>
+        <input type="month" id="filtro-lanc-mes" onchange="renderLancamentos()">
+      </div>
+      <table class="tabela">
+        <thead><tr><th>Data</th><th>Tipo</th><th>Descrição</th><th>Sócio/Conta</th><th>Valor</th><th></th></tr></thead>
+        <tbody id="lista-lancamentos"></tbody>
+      </table>
+    </section>
+
+    <section id="aba-usuarios" class="aba oculto">
+      <div class="aba-header">
+        <h2>Usuários com acesso</h2>
+        <button class="btn-primario" onclick="abrirModalUsuario()">+ Novo usuário</button>
+      </div>
+      <table class="tabela">
+        <thead><tr><th>Nome</th><th>Email</th><th>Desde</th><th></th></tr></thead>
+        <tbody id="lista-usuarios"></tbody>
+      </table>
+    </section>
+
+  </main>
+</div>
+
+<div id="modal-produto" class="modal oculto">
+  <div class="modal-conteudo">
+    <div class="modal-header">
+      <h3 id="modal-produto-titulo">Novo produto</h3>
+      <span class="fechar" onclick="fecharModal('modal-produto')">&times;</span>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="prod-id">
+      <label>Nome do produto</label>
+      <input id="prod-nome" placeholder="Ex: iPhone 13 256GB Azul">
+      <div class="linha">
+        <div>
+          <label>Categoria</label>
+          <select id="prod-categoria">
+            <option>iPhone</option><option>Android</option><option>TV</option>
+            <option>Acessório</option><option>Console/Videogame</option><option>Outro</option>
+          </select>
+        </div>
+        <div>
+          <label>SKU (opcional, gera automático)</label>
+          <input id="prod-sku" placeholder="KNB001">
+        </div>
+      </div>
+      <label>Condição (bateria, tela, defeitos etc.)</label>
+      <input id="prod-condicao" placeholder="Ex: Usado · 87% bateria">
+      <label>IMEI / número de série (opcional, evita duplicidade)</label>
+      <input id="prod-imei">
+      <div class="linha">
+        <div>
+          <label>Quantidade (lote — use 1 para item único)</label>
+          <input id="prod-qtd" type="number" min="1" value="1">
+        </div>
+        <div>
+          <label>Data da compra</label>
+          <input id="prod-data-compra" type="date">
+        </div>
+      </div>
+      <label>Custo total (R$)</label>
+      <input id="prod-custo" type="number" step="0.01" oninput="atualizarInvestimentosUI()">
+      <div id="investimentos-box"></div>
+      <div class="linha">
+        <div>
+          <label>Preço de anúncio (R$)</label>
+          <input id="prod-preco-anuncio" type="number" step="0.01">
+        </div>
+        <div>
+          <label>Lucro mínimo aceitável (R$)</label>
+          <input id="prod-lucro-minimo" type="number" step="0.01">
+        </div>
+      </div>
+      <label>Status manual (opcional — deixe em branco pra calcular automático pelo estoque)</label>
+      <input id="prod-status-manual" placeholder="Ex: Troca (R$125 a receber)">
+      <label>Observações</label>
+      <textarea id="prod-obs"></textarea>
+      <p id="prod-erro" class="erro"></p>
+      <div class="modal-acoes">
+        <button class="btn-primario" onclick="salvarProduto()">Salvar</button>
+        <button id="btn-excluir-produto" class="btn-perigo oculto" onclick="excluirProduto()">Excluir</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="modal-venda" class="modal oculto">
+  <div class="modal-conteudo">
+    <div class="modal-header"><h3>Registrar venda</h3><span class="fechar" onclick="fecharModal('modal-venda')">&times;</span></div>
+    <div class="modal-body">
+      <input type="hidden" id="venda-produto-id">
+      <p id="venda-produto-nome" class="destaque"></p>
+      <label>Quantidade vendida</label>
+      <input id="venda-qtd" type="number" min="1" value="1">
+
+      <label class="check-linha">
+        <input type="checkbox" id="venda-eh-troca" onchange="alternarTroca()">
+        Foi troca (sem valor em dinheiro) — o custo passa pro produto recebido
+      </label>
+
+      <div id="venda-valor-box">
+        <label>Valor vendido (R$)</label>
+        <input id="venda-valor" type="number" step="0.01">
+      </div>
+
+      <div id="venda-destino-box" class="oculto">
+        <label>Produto recebido em troca (o custo desse produto vai pra ele)</label>
+        <select id="venda-destino"><option value="">— nenhum (só dar baixa, sem transferir custo) —</option></select>
+      </div>
+
+      <label>Canal de venda</label>
+      <input id="venda-canal" placeholder="Ex: Pix, Cartão, Troca...">
+      <label>Data da venda</label>
+      <input id="venda-data" type="date">
+      <label>Observações</label>
+      <textarea id="venda-obs"></textarea>
+      <p id="venda-erro" class="erro"></p>
+      <div class="modal-acoes"><button class="btn-primario" onclick="salvarVenda()">Confirmar venda</button></div>
+    </div>
+  </div>
+</div>
+
+<div id="modal-lancamento" class="modal oculto">
+  <div class="modal-conteudo">
+    <div class="modal-header"><h3>Novo lançamento</h3><span class="fechar" onclick="fecharModal('modal-lancamento')">&times;</span></div>
+    <div class="modal-body">
+      <label>Tipo</label>
+      <select id="lanc-tipo"><option value="saida">Saída (despesa)</option><option value="entrada">Entrada (receita)</option></select>
+      <label>Descrição</label>
+      <input id="lanc-descricao" placeholder="Ex: Aluguel, Ads Instagram...">
+      <label>Valor (R$)</label>
+      <input id="lanc-valor" type="number" step="0.01">
+      <label>Sócio/Conta (opcional — deixe em branco pra despesa da loja)</label>
+      <select id="lanc-socio"><option value="">Loja (geral)</option></select>
+      <label>Data</label>
+      <input id="lanc-data" type="date">
+      <p id="lanc-erro" class="erro"></p>
+      <div class="modal-acoes"><button class="btn-primario" onclick="salvarLancamento()">Salvar</button></div>
+    </div>
+  </div>
+</div>
+
+<div id="modal-usuario" class="modal oculto">
+  <div class="modal-conteudo">
+    <div class="modal-header"><h3>Novo usuário</h3><span class="fechar" onclick="fecharModal('modal-usuario')">&times;</span></div>
+    <div class="modal-body">
+      <div id="usuario-form">
+        <label>Nome</label>
+        <input id="user-nome-novo" placeholder="Ex: Kauã">
+        <label>Email</label>
+        <input id="user-email-novo" type="email">
+        <label>Senha (mín. 6 caracteres)</label>
+        <input id="user-senha-novo" type="password">
+        <p id="user-erro" class="erro"></p>
+        <div class="modal-acoes"><button class="btn-primario" onclick="salvarUsuario()">Cadastrar</button></div>
+      </div>
+      <div id="user-codigo" class="oculto codigo-box">
+        <p><strong>Guarde este código de recuperação de senha da pessoa nova:</strong></p>
+        <p id="user-codigo-texto" class="codigo"></p>
+        <p class="aviso">Ele só aparece agora. Manda esse código pra pessoa por fora (whatsapp, etc).</p>
+        <button onclick="fecharModal('modal-usuario')">Entendi</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="/app.js"></script>
+</body>
+</html>

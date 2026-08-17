@@ -328,15 +328,17 @@ function vendasDoProduto(produtoId) {
   return db.prepare('SELECT * FROM vendas WHERE produto_id=? ORDER BY data_venda').all(produtoId);
 }
 
-// Para uma venda: lucro = valor_vendido - (custo_unitario * quantidade vendida nessa venda).
+// Para uma venda normal: lucro = valor_vendido - (custo_unitario * quantidade vendida nessa venda).
 // O lucro e sempre dividido em partes iguais entre os socios que investiram no produto
 // (replica a regra usada manualmente na planilha: lucro/2 mesmo quando o aporte nao foi 50/50).
-// Quando e troca (eh_troca=1), nao existe valor em dinheiro real: o custo do produto trocado
-// e transferido pro produto recebido (ver rota /vender), entao essa venda em si nao gera lucro
-// nem prejuizo aqui — o lucro so aparece de verdade quando o produto recebido for vendido.
+// Quando e troca (eh_troca=1): o custo do produto trocado e transferido inteiro pro produto
+// recebido (ver rota /vender), entao esse custo NAO entra na conta do lucro aqui — ele so vira
+// lucro/prejuizo de verdade quando o produto recebido for vendido. Mas se entrou algum dinheiro
+// junto com a troca (ex: trocou + recebeu um troco em Pix), esse valor e lucro puro, porque o
+// custo dessa venda ja foi todo embutido no outro produto.
 function calcularVenda(produto, venda) {
   const custo = custoUnitario(produto) * venda.quantidade;
-  const lucro = venda.eh_troca ? 0 : (venda.valor_vendido - custo);
+  const lucro = venda.eh_troca ? venda.valor_vendido : (venda.valor_vendido - custo);
   return { custo, lucro };
 }
 

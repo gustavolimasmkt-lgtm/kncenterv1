@@ -83,7 +83,15 @@
   <main class="conteudo">
 
     <section id="aba-resumo" class="aba">
-      <h2>Resumo Financeiro</h2>
+      <div class="aba-header">
+        <h2>Resumo Financeiro</h2>
+        <div class="filtros" style="margin-bottom:0">
+          <label class="filtro-data-label">De <input type="date" id="resumo-de" onchange="carregarResumo()"></label>
+          <label class="filtro-data-label">Até <input type="date" id="resumo-ate" onchange="carregarResumo()"></label>
+          <button class="btn-mini" onclick="limparFiltroResumo()">Tudo</button>
+        </div>
+      </div>
+      <p id="resumo-aviso-periodo" class="aviso oculto">Lucro, arrecadado e lançamentos abaixo estão filtrados pelo período. Investido e estoque em aberto sempre mostram o estado atual.</p>
       <div id="cards-resumo" class="cards"></div>
     </section>
 
@@ -258,8 +266,22 @@
       <p id="venda-produto-nome" class="destaque"></p>
       <label>Quantidade vendida</label>
       <input id="venda-qtd" type="number" min="1" value="1">
-      <label>Valor vendido (R$)</label>
-      <input id="venda-valor" type="number" step="0.01">
+
+      <label class="check-linha">
+        <input type="checkbox" id="venda-eh-troca" onchange="alternarTroca()">
+        Foi troca (sem valor em dinheiro) — o custo passa pro produto recebido
+      </label>
+
+      <div id="venda-valor-box">
+        <label>Valor vendido (R$)</label>
+        <input id="venda-valor" type="number" step="0.01">
+      </div>
+
+      <div id="venda-destino-box" class="oculto">
+        <label>Produto recebido em troca (o custo desse produto vai pra ele)</label>
+        <select id="venda-destino"><option value="">— nenhum (só dar baixa, sem transferir custo) —</option></select>
+      </div>
+
       <label>Canal de venda</label>
       <input id="venda-canal" placeholder="Ex: Pix, Cartão, Troca...">
       <label>Data da venda</label>

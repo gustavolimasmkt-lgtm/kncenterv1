@@ -692,6 +692,22 @@ app.post('/api/produtos/:id/vender', (req, res) => {
   }
 });
 
+// ---------- VENDAS (modulo global, todas as vendas de todos os produtos) ----------
+// Lista todas as vendas, mais recentes primeiro, com nome/sku do produto vendido e do produto
+// de destino (quando for troca). Filtro de data e o resto (busca, canal, troca) fica por conta
+// do front — mesmo padrao usado em Produtos e Lancamentos (cacheia tudo, filtra no cliente).
+app.get('/api/vendas', (_, res) => {
+  const linhas = db.prepare(`
+    SELECT v.*, p.nome AS produto_nome, p.sku AS produto_sku,
+           d.nome AS produto_destino_nome, d.sku AS produto_destino_sku
+    FROM vendas v
+    JOIN produtos p ON p.id = v.produto_id
+    LEFT JOIN produtos d ON d.id = v.produto_destino_id
+    ORDER BY v.data_venda DESC, v.id DESC
+  `).all();
+  ok(res, linhas.map(v => ({ ...v, ...lerVendaCongelada(v) })));
+});
+
 // Editar uma venda ja registrada. Se foi troca com transferencia de custo pra outro produto,
 // so deixa mexer em canal/data/obs — mexer em quantidade/valor exigiria desfazer e refazer a
 // transferencia de custo/investimento no produto de destino, o que e arriscado de automatizar.

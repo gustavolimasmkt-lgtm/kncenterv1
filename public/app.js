@@ -20,7 +20,7 @@ let SOCIOS = [];
 let USUARIO = null;
 
 function mostrar(id) {
-  ['form-login', 'form-cadastro', 'form-recuperar'].forEach(f => $(f).classList.add('oculto'));
+  ['form-login', 'form-cadastro'].forEach(f => $(f).classList.add('oculto'));
   $(id).classList.remove('oculto');
 }
 
@@ -49,20 +49,9 @@ async function fazerCadastro() {
     const r = await api('POST', '/api/auth/registrar', {
       nome: $('cad-nome').value, email: $('cad-email').value, senha: $('cad-senha').value
     });
-    $('cad-codigo-texto').textContent = r.recoveryCode;
-    $('cad-codigo').classList.remove('oculto');
+    USUARIO = r;
+    await entrarNoApp();
   } catch (e) { $('cad-erro').textContent = e.message; }
-}
-
-async function recuperarSenha() {
-  $('rec-erro').textContent = '';
-  try {
-    await api('POST', '/api/auth/recuperar-senha', {
-      email: $('rec-email').value, codigo: $('rec-codigo').value, novaSenha: $('rec-senha').value
-    });
-    alert('Senha alterada. Faça login com a nova senha.');
-    mostrar('form-login');
-  } catch (e) { $('rec-erro').textContent = e.message; }
 }
 
 async function fazerLogout() {
@@ -91,7 +80,13 @@ async function irPara(aba) {
   $('aba-' + aba).classList.remove('oculto');
   if (aba === 'resumo') await carregarResumo();
   if (aba === 'produtos') await carregarProdutos();
-  if (aba === 'vendas') await carregarVendas();
+  if (aba === 'vendas') {
+    // sempre entra na aba com o filtro de data limpo — evita o navegador reaproveitar (autofill)
+    // uma data digitada numa visita anterior e esconder tudo sem deixar claro o motivo.
+    $('vendas-de').value = '';
+    $('vendas-ate').value = '';
+    await carregarVendas();
+  }
   if (aba === 'disponiveis') await carregarDisponiveis();
   if (aba === 'mensal') await carregarMensal();
   if (aba === 'semanal') await carregarSemanal();
@@ -767,7 +762,10 @@ async function carregarUsuarios() {
       <td>${u.nome}${u.is_admin ? ' ⭐' : ''}</td>
       <td>${u.email}</td>
       <td>${(u.criado_em || '').slice(0, 10).split('-').reverse().join('/')}</td>
-      <td>${u.id !== USUARIO.id ? `<button class="btn-mini" onclick="excluirUsuario(${u.id})">Remover acesso</button>` : ''}</td>
+      <td>
+        <button class="btn-mini" onclick="abrirModalTrocarSenha(${u.id}, '${u.nome.replace(/'/g, "\\'")}')">Trocar senha</button>
+        ${u.id !== USUARIO.id ? `<button class="btn-mini" onclick="excluirUsuario(${u.id})">Remover acesso</button>` : ''}
+      </td>
     </tr>
   `).join('') || '<tr><td colspan="4">Nenhum usuário.</td></tr>';
 }
@@ -777,20 +775,16 @@ function abrirModalUsuario() {
   $('user-nome-novo').value = '';
   $('user-email-novo').value = '';
   $('user-senha-novo').value = '';
-  $('usuario-form').classList.remove('oculto');
-  $('user-codigo').classList.add('oculto');
   $('modal-usuario').classList.remove('oculto');
 }
 
 async function salvarUsuario() {
   $('user-erro').textContent = '';
   try {
-    const r = await api('POST', '/api/usuarios', {
+    await api('POST', '/api/usuarios', {
       nome: $('user-nome-novo').value, email: $('user-email-novo').value, senha: $('user-senha-novo').value
     });
-    $('usuario-form').classList.add('oculto');
-    $('user-codigo-texto').textContent = r.recoveryCode;
-    $('user-codigo').classList.remove('oculto');
+    fecharModal('modal-usuario');
     await carregarUsuarios();
   } catch (e) { $('user-erro').textContent = e.message; }
 }
@@ -801,6 +795,25 @@ async function excluirUsuario(id) {
     await api('DELETE', '/api/usuarios/' + id);
     await carregarUsuarios();
   } catch (e) { alert(e.message); }
+}
+
+// ---------- Trocar senha (direto no painel, sem codigo de recuperacao) ----------
+function abrirModalTrocarSenha(id, nome) {
+  $('trocar-senha-erro').textContent = '';
+  $('trocar-senha-user-id').value = id;
+  $('trocar-senha-nova').value = '';
+  $('trocar-senha-titulo').textContent = `Trocar senha — ${nome}`;
+  $('modal-trocar-senha').classList.remove('oculto');
+}
+
+async function salvarTrocaSenha() {
+  $('trocar-senha-erro').textContent = '';
+  const id = $('trocar-senha-user-id').value;
+  try {
+    await api('PUT', `/api/usuarios/${id}/senha`, { novaSenha: $('trocar-senha-nova').value });
+    fecharModal('modal-trocar-senha');
+    alert('Senha trocada. Se era a sua própria conta, você vai precisar entrar de novo com a senha nova.');
+  } catch (e) { $('trocar-senha-erro').textContent = e.message; }
 }
 
 // ---------- Modal helpers ----------

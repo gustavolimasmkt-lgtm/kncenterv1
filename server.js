@@ -225,26 +225,18 @@ app.post('/api/auth/registrar', (req, res) => {
   const existe = db.prepare('SELECT id FROM usuarios WHERE email=?').get(email.toLowerCase());
   if (existe) return err(res, 'Email ja cadastrado');
   const hash = bcrypt.hashSync(senha, 10);
-  const recoveryCode = crypto.randomBytes(6).toString('hex').toUpperCase().match(/.{1,4}/g).join('-');
-  const recoveryHash = bcrypt.hashSync(recoveryCode, 10);
-  const r = db.prepare('INSERT INTO usuarios (nome, email, senha_hash, recovery_code_hash, is_admin) VALUES (?,?,?,?,?)')
-    .run(nome, email.toLowerCase(), hash, recoveryHash, ehPrimeiroUsuario ? 1 : 0);
-  ok(res, { id: r.lastInsertRowid, nome, email: email.toLowerCase(), recoveryCode });
-});
+  const r = db.prepare('INSERT INTO usuarios (nome, email, senha_hash, is_admin) VALUES (?,?,?,?)')
+    .run(nome, email.toLowerCase(), hash, ehPrimeiroUsuario ? 1 : 0);
 
-app.post('/api/auth/recuperar-senha', (req, res) => {
-  const { email, codigo, novaSenha } = req.body;
-  if (!email || !codigo || !novaSenha) return err(res, 'Email, codigo de recuperacao e nova senha obrigatorios');
-  if (novaSenha.length < 6) return err(res, 'Senha precisa de ao menos 6 caracteres');
-  const user = db.prepare('SELECT * FROM usuarios WHERE email=?').get(email.toLowerCase());
-  if (!user || !user.recovery_code_hash || !bcrypt.compareSync(codigo.trim().toUpperCase(), user.recovery_code_hash))
-    return err(res, 'Email ou codigo de recuperacao invalido', 401);
-  const novoHash = bcrypt.hashSync(novaSenha, 10);
-  const novoCodigo = crypto.randomBytes(6).toString('hex').toUpperCase().match(/.{1,4}/g).join('-');
-  const novoCodigoHash = bcrypt.hashSync(novoCodigo, 10);
-  db.prepare('UPDATE usuarios SET senha_hash=?, recovery_code_hash=? WHERE id=?').run(novoHash, novoCodigoHash, user.id);
-  db.prepare('DELETE FROM sessoes WHERE usuario_id=?').run(user.id);
-  ok(res, { msg: 'Senha alterada', novoCodigo });
+  // ja loga direto (sem precisar preencher o formulario de login de novo logo em seguida) —
+  // so acontece na tela de cadastro publica (deslogada), entao nao ha sessao de outra pessoa
+  // sendo trocada por engano aqui.
+  const token = crypto.randomBytes(32).toString('hex');
+  const expira = new Date(Date.now() + 30 * 24 * 3600 * 1000).toISOString();
+  db.prepare('INSERT INTO sessoes (token, usuario_id, expira_em) VALUES (?,?,?)').run(token, r.lastInsertRowid, expira);
+  res.cookie('sessao', token, { httpOnly: true, maxAge: 30 * 24 * 3600 * 1000, sameSite: 'lax' });
+
+  ok(res, { id: r.lastInsertRowid, nome, email: email.toLowerCase() });
 });
 
 app.post('/api/auth/login', (req, res) => {
@@ -270,13 +262,6 @@ app.get('/api/auth/me', requireAuth, (req, res) => ok(res, req.user));
 // tudo abaixo exige login
 app.use('/api', requireAuth);
 
-app.post('/api/auth/gerar-codigo-recuperacao', (req, res) => {
-  const novoCodigo = crypto.randomBytes(6).toString('hex').toUpperCase().match(/.{1,4}/g).join('-');
-  const novoCodigoHash = bcrypt.hashSync(novoCodigo, 10);
-  db.prepare('UPDATE usuarios SET recovery_code_hash=? WHERE id=?').run(novoCodigoHash, req.user.id);
-  ok(res, { novoCodigo });
-});
-
 // ---------- USUARIOS (quem tem acesso ao sistema) ----------
 app.get('/api/usuarios', (_, res) => {
   ok(res, db.prepare('SELECT id, nome, email, is_admin, criado_em FROM usuarios ORDER BY criado_em').all()
@@ -292,11 +277,23 @@ app.post('/api/usuarios', (req, res) => {
   const existe = db.prepare('SELECT id FROM usuarios WHERE email=?').get(email.toLowerCase());
   if (existe) return err(res, 'Email ja cadastrado');
   const hash = bcrypt.hashSync(senha, 10);
-  const recoveryCode = crypto.randomBytes(6).toString('hex').toUpperCase().match(/.{1,4}/g).join('-');
-  const recoveryHash = bcrypt.hashSync(recoveryCode, 10);
-  const r = db.prepare('INSERT INTO usuarios (nome, email, senha_hash, recovery_code_hash, is_admin) VALUES (?,?,?,?,0)')
-    .run(nome, email.toLowerCase(), hash, recoveryHash);
-  ok(res, { id: r.lastInsertRowid, nome, email: email.toLowerCase(), recoveryCode });
+  const r = db.prepare('INSERT INTO usuarios (nome, email, senha_hash, is_admin) VALUES (?,?,?,0)')
+    .run(nome, email.toLowerCase(), hash);
+  ok(res, { id: r.lastInsertRowid, nome, email: email.toLowerCase() });
+});
+
+// Troca a senha de qualquer usuario direto pelo painel — sem precisar de codigo de recuperacao.
+// Qualquer pessoa logada pode trocar a senha de qualquer conta (mesmo modelo de permissao
+// simplificado do resto do app: 2 socios, confianca mutua, sem papeis granulares).
+app.put('/api/usuarios/:id/senha', (req, res) => {
+  const alvo = db.prepare('SELECT id FROM usuarios WHERE id=?').get(req.params.id);
+  if (!alvo) return err(res, 'Usuario nao encontrado', 404);
+  const { novaSenha } = req.body;
+  if (!novaSenha || novaSenha.length < 6) return err(res, 'Senha precisa de ao menos 6 caracteres');
+  const hash = bcrypt.hashSync(novaSenha, 10);
+  db.prepare('UPDATE usuarios SET senha_hash=? WHERE id=?').run(hash, alvo.id);
+  db.prepare('DELETE FROM sessoes WHERE usuario_id=?').run(alvo.id); // desloga a conta, precisa entrar com a senha nova
+  ok(res, { id: alvo.id });
 });
 
 app.delete('/api/usuarios/:id', (req, res) => {

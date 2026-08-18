@@ -29,7 +29,7 @@
       <input id="login-senha" type="password" placeholder="Senha">
       <button onclick="fazerLogin()">Entrar</button>
       <p class="link" onclick="mostrar('form-cadastro')">Não tem conta? Cadastre-se</p>
-      <p class="link" onclick="mostrar('form-recuperar')">Esqueci a senha</p>
+      <p class="aviso">Esqueceu a senha? Peça pra alguém com acesso trocar ela pra você na aba Usuários.</p>
       <p id="login-erro" class="erro"></p>
     </div>
 
@@ -41,22 +41,6 @@
       <button onclick="fazerCadastro()">Cadastrar</button>
       <p class="link" onclick="mostrar('form-login')">Já tem conta? Entrar</p>
       <p id="cad-erro" class="erro"></p>
-      <div id="cad-codigo" class="oculto codigo-box">
-        <p><strong>Guarde este código de recuperação de senha:</strong></p>
-        <p id="cad-codigo-texto" class="codigo"></p>
-        <p class="aviso">Ele só aparece agora. Sem ele você não recupera a senha depois.</p>
-        <button onclick="mostrar('form-login')">Entendi, ir para o login</button>
-      </div>
-    </div>
-
-    <div id="form-recuperar" class="oculto">
-      <h2>Recuperar senha</h2>
-      <input id="rec-email" type="email" placeholder="Email">
-      <input id="rec-codigo" placeholder="Código de recuperação (ex: A1B2-C3D4-E5F6)">
-      <input id="rec-senha" type="password" placeholder="Nova senha">
-      <button onclick="recuperarSenha()">Trocar senha</button>
-      <p class="link" onclick="mostrar('form-login')">Voltar para o login</p>
-      <p id="rec-erro" class="erro"></p>
     </div>
   </div>
 </div>
@@ -87,8 +71,8 @@
       <div class="aba-header">
         <h2>Resumo Financeiro</h2>
         <div class="filtros" style="margin-bottom:0">
-          <label class="filtro-data-label">De <input type="date" id="resumo-de" onchange="carregarResumo()"></label>
-          <label class="filtro-data-label">Até <input type="date" id="resumo-ate" onchange="carregarResumo()"></label>
+          <label class="filtro-data-label">De <input type="date" id="resumo-de" autocomplete="off" onchange="carregarResumo()"></label>
+          <label class="filtro-data-label">Até <input type="date" id="resumo-ate" autocomplete="off" onchange="carregarResumo()"></label>
           <button class="btn-mini" onclick="limparFiltroResumo()">Tudo</button>
         </div>
       </div>
@@ -147,8 +131,8 @@
         <span id="vendas-totais" class="filtro-contador"></span>
       </div>
       <div class="filtros">
-        <label class="filtro-data-label">De <input type="date" id="vendas-de" onchange="renderVendas()"></label>
-        <label class="filtro-data-label">Até <input type="date" id="vendas-ate" onchange="renderVendas()"></label>
+        <label class="filtro-data-label">De <input type="date" id="vendas-de" autocomplete="off" onchange="renderVendas()"></label>
+        <label class="filtro-data-label">Até <input type="date" id="vendas-ate" autocomplete="off" onchange="renderVendas()"></label>
         <button class="btn-mini" onclick="limparFiltroVendas()">Tudo</button>
         <input type="text" id="filtro-vendas-busca" placeholder="🔎 Buscar por produto, SKU ou canal..." oninput="renderVendas()">
         <select id="filtro-vendas-tipo" onchange="renderVendas()">
@@ -367,22 +351,27 @@
   <div class="modal-conteudo">
     <div class="modal-header"><h3>Novo usuário</h3><span class="fechar" onclick="fecharModal('modal-usuario')">&times;</span></div>
     <div class="modal-body">
-      <div id="usuario-form">
-        <label>Nome</label>
-        <input id="user-nome-novo" placeholder="Ex: Kauã">
-        <label>Email</label>
-        <input id="user-email-novo" type="email">
-        <label>Senha (mín. 6 caracteres)</label>
-        <input id="user-senha-novo" type="password">
-        <p id="user-erro" class="erro"></p>
-        <div class="modal-acoes"><button class="btn-primario" onclick="salvarUsuario()">Cadastrar</button></div>
-      </div>
-      <div id="user-codigo" class="oculto codigo-box">
-        <p><strong>Guarde este código de recuperação de senha da pessoa nova:</strong></p>
-        <p id="user-codigo-texto" class="codigo"></p>
-        <p class="aviso">Ele só aparece agora. Manda esse código pra pessoa por fora (whatsapp, etc).</p>
-        <button onclick="fecharModal('modal-usuario')">Entendi</button>
-      </div>
+      <label>Nome</label>
+      <input id="user-nome-novo" placeholder="Ex: Kauã">
+      <label>Email</label>
+      <input id="user-email-novo" type="email">
+      <label>Senha (mín. 6 caracteres)</label>
+      <input id="user-senha-novo" type="password">
+      <p id="user-erro" class="erro"></p>
+      <div class="modal-acoes"><button class="btn-primario" onclick="salvarUsuario()">Cadastrar</button></div>
+    </div>
+  </div>
+</div>
+
+<div id="modal-trocar-senha" class="modal oculto">
+  <div class="modal-conteudo">
+    <div class="modal-header"><h3 id="trocar-senha-titulo">Trocar senha</h3><span class="fechar" onclick="fecharModal('modal-trocar-senha')">&times;</span></div>
+    <div class="modal-body">
+      <input type="hidden" id="trocar-senha-user-id">
+      <label>Nova senha (mín. 6 caracteres)</label>
+      <input id="trocar-senha-nova" type="password">
+      <p id="trocar-senha-erro" class="erro"></p>
+      <div class="modal-acoes"><button class="btn-primario" onclick="salvarTrocaSenha()">Salvar nova senha</button></div>
     </div>
   </div>
 </div>

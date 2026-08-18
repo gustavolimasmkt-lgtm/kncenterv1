@@ -481,9 +481,17 @@ app.post('/api/produtos/importar-planilha', (req, res) => {
           for (const inv of p.investimentos) insInv.run(produtoId, socioId(inv.socio), inv.valor);
 
           if (p.venda) {
-            db.prepare(`INSERT INTO vendas (produto_id,quantidade,valor_vendido,canal_venda,data_venda,obs,usuario_id)
-              VALUES (?,?,?,?,?,?,?)`)
-              .run(produtoId, p.venda.quantidade, p.venda.valor_vendido, p.venda.canal_venda, p.venda.data_venda, p.venda.obs, req.user.id);
+            // BUG corrigido: essa insercao nao gravava custo/lucro (colunas que existem pra
+            // "congelar" o resultado da venda na hora em que ela acontece — ver calcularVendaNova).
+            // Ficava NULL, e lerVendaCongelada le NULL como 0 — por isso o lucro por socio (mensal
+            // e semanal) aparecia sempre zerado pra toda venda que entrou por importacao de planilha,
+            // mesmo com "Arrecadado" certo (que vem direto de valor_vendido, sem passar por isso).
+            const custoUnit = p.quantidade_total > 0 ? p.custo_total / p.quantidade_total : 0;
+            const custoVenda = custoUnit * p.venda.quantidade;
+            const lucroVenda = p.venda.valor_vendido - custoVenda;
+            db.prepare(`INSERT INTO vendas (produto_id,quantidade,valor_vendido,canal_venda,data_venda,obs,usuario_id,custo,lucro)
+              VALUES (?,?,?,?,?,?,?,?,?)`)
+              .run(produtoId, p.venda.quantidade, p.venda.valor_vendido, p.venda.canal_venda, p.venda.data_venda, p.venda.obs, req.user.id, custoVenda, lucroVenda);
             db.prepare('UPDATE produtos SET quantidade_vendida = quantidade_vendida + ? WHERE id=?')
               .run(p.venda.quantidade, produtoId);
             vendasCriadas++;

@@ -65,6 +65,38 @@
     </div>
   </header>
 
+  <nav class="tab-bar-mobile">
+    <button class="tab-bar-btn ativa" data-aba="resumo" onclick="irPara('resumo')">
+      <span class="tab-bar-icone">📊</span><span>Resumo</span>
+    </button>
+    <button class="tab-bar-btn" data-aba="produtos" onclick="irPara('produtos')">
+      <span class="tab-bar-icone">📦</span><span>Produtos</span>
+    </button>
+    <button class="tab-bar-btn" data-aba="vendas" onclick="irPara('vendas')">
+      <span class="tab-bar-icone">🧾</span><span>Vendas</span>
+    </button>
+    <button class="tab-bar-btn" data-aba="disponiveis" onclick="irPara('disponiveis')">
+      <span class="tab-bar-icone">🟢</span><span>Estoque</span>
+    </button>
+    <button class="tab-bar-btn" id="tab-bar-mais-btn" onclick="abrirMaisMenu()">
+      <span class="tab-bar-icone">⋯</span><span>Mais</span>
+    </button>
+  </nav>
+
+  <div id="modal-mais" class="modal oculto">
+    <div class="modal-conteudo">
+      <div class="modal-header"><h3>Mais</h3><span class="fechar" onclick="fecharModal('modal-mais')">&times;</span></div>
+      <div class="modal-body mais-lista">
+        <button class="mais-item" onclick="irParaEFecharMais('mensal')">📅 Lucro por Mês</button>
+        <button class="mais-item" onclick="irParaEFecharMais('semanal')">🎯 Lucro por Semana</button>
+        <button class="mais-item" onclick="irParaEFecharMais('extrato')">🤝 Extrato Sócios</button>
+        <button class="mais-item" onclick="irParaEFecharMais('lancamentos')">💵 Lançamentos</button>
+        <button class="mais-item" onclick="irParaEFecharMais('usuarios')">👤 Usuários</button>
+        <button class="mais-item mais-item-sair" onclick="fazerLogout()">🚪 Sair</button>
+      </div>
+    </div>
+  </div>
+
   <main class="conteudo">
 
     <section id="aba-resumo" class="aba">

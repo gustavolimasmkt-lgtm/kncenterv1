@@ -19,8 +19,12 @@ app, abre em tela cheia. Não precisa de loja de app nem de conta de desenvolved
 ## O que foi adaptado do sistema de carros e o que foi removido
 
 Mantido (não é específico de carro): login com cookie httpOnly, cadastro fechado por convite,
-recuperação de senha por código único (sem email), auditoria de criação/edição/exclusão, upload
-de fotos, deploy Railway com volume persistente.
+auditoria de criação/edição/exclusão, upload de fotos, deploy Railway com volume persistente.
+
+Simplificado: a recuperação de senha por código único foi trocada por troca direta — qualquer
+pessoa logada pode trocar a senha de qualquer conta na aba Usuários (botão "Trocar senha"), sem
+precisar de código nem email. Isso desloga a conta afetada, que precisa entrar de novo com a
+senha nova.
 
 Removido, sem substituto (conforme decidido): tabela FIPE, verificação de placa, alerta de
 "material parado há 15+ dias". Nenhum desses tem equivalente natural em eletrônicos.

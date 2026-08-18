@@ -75,7 +75,11 @@ function preencherSelectSocios() {
 
 // ---------- Navegação ----------
 async function irPara(aba) {
-  document.querySelectorAll('.aba-btn').forEach(b => b.classList.toggle('ativa', b.dataset.aba === aba));
+  document.querySelectorAll('.aba-btn, .tab-bar-btn').forEach(b => b.classList.toggle('ativa', b.dataset.aba === aba));
+  // a barra de baixo (mobile) so tem espaco pra 4 abas + "Mais" — acende o "Mais" quando a aba
+  // atual e uma das que ficaram escondidas dentro dele, pra sempre ter algum item aceso.
+  const abasNoMais = ['mensal', 'semanal', 'extrato', 'lancamentos', 'usuarios'];
+  $('tab-bar-mais-btn').classList.toggle('ativa', abasNoMais.includes(aba));
   document.querySelectorAll('.aba').forEach(s => s.classList.add('oculto'));
   $('aba-' + aba).classList.remove('oculto');
   if (aba === 'resumo') await carregarResumo();
@@ -93,6 +97,14 @@ async function irPara(aba) {
   if (aba === 'extrato') await carregarExtrato();
   if (aba === 'lancamentos') await carregarLancamentos();
   if (aba === 'usuarios') await carregarUsuarios();
+}
+
+// ---------- Barra "Mais" (mobile) ----------
+function abrirMaisMenu() { $('modal-mais').classList.remove('oculto'); }
+
+async function irParaEFecharMais(aba) {
+  fecharModal('modal-mais');
+  await irPara(aba);
 }
 
 // ---------- Resumo ----------

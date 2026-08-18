@@ -239,26 +239,20 @@ async function exportarProdutosSelecionados() {
 async function excluirProdutosSelecionados() {
   const ids = [...PRODUTOS_SELECIONADOS];
   if (!ids.length) return;
-  if (!confirm(`Excluir ${ids.length} produto(s) selecionado(s)?`)) return;
+  const forcar = $('forcar-exclusao-massa').checked;
+  const aviso = forcar
+    ? `Excluir ${ids.length} produto(s) selecionado(s)?\n\nA opção "apagar mesmo com vendas" está marcada — quem tiver vendas registradas vai ser excluído JUNTO com o histórico de vendas. Os totais de lucro mensal/semanal já fechados vão mudar.`
+    : `Excluir ${ids.length} produto(s) selecionado(s)?\n\nProdutos com vendas registradas não vão ser excluídos (marque a opção "apagar mesmo com vendas", acima da lista, se quiser incluir esses também).`;
+  // um unico confirm() — evita empilhar duas caixinhas seguidas, que no app instalado no iPhone
+  // (modo standalone) pode nao aparecer direito na segunda vez e parecer que "nao faz nada".
+  if (!confirm(aviso)) return;
   try {
-    const r = await api('POST', '/api/produtos/excluir-em-massa', { ids });
+    const r = await api('POST', '/api/produtos/excluir-em-massa', { ids, forcar });
     let msg = `${r.excluidos} produto(s) excluído(s).`;
-
     if (r.bloqueados.length) {
-      const nomes = r.bloqueados.map(b => b.label).join(', ');
-      const querForcar = confirm(
-        `${r.bloqueados.length} produto(s) não foram excluídos porque têm vendas registradas: ${nomes}.\n\n` +
-        `Apagar esses também, junto com o histórico de vendas deles? Isso muda os totais de lucro mensal/semanal já fechados.`
-      );
-      if (querForcar) {
-        const idsForcar = r.bloqueados.map(b => b.id);
-        const r2 = await api('POST', '/api/produtos/excluir-em-massa', { ids: idsForcar, forcar: true });
-        msg += ` Mais ${r2.excluidos} excluído(s) à força (com histórico de vendas).`;
-      } else {
-        msg += `\nNão excluídos: ${nomes}`;
-      }
+      msg += `\n\nNão excluídos (têm vendas registradas): ${r.bloqueados.map(b => b.label).join(', ')}.\nMarque "apagar mesmo com vendas" e tente de novo se quiser incluir esses também.`;
     }
-
+    $('forcar-exclusao-massa').checked = false;
     PRODUTOS_SELECIONADOS.clear();
     await carregarProdutos();
     await atualizarVendasSeVisivel();
@@ -307,6 +301,7 @@ let PRODUTO_EM_EDICAO_VENDAS = [];
 async function abrirModalProduto(id) {
   $('prod-erro').textContent = '';
   $('prod-id').value = id || '';
+  $('btn-excluir-produto-forcado').classList.add('oculto');
   if (id) {
     const p = await api('GET', '/api/produtos/' + id);
     PRODUTO_EM_EDICAO_VENDAS = p.vendas || [];
@@ -393,17 +388,22 @@ async function excluirProduto() {
     fecharModal('modal-produto');
     await carregarProdutos();
   } catch (e) {
-    if (/vendas registradas/i.test(e.message)) {
-      if (!confirm(`${e.message}\n\nApagar mesmo assim, junto com o histórico de vendas desse produto? Isso muda os totais de lucro mensal/semanal já fechados que incluíam essas vendas.`)) return;
-      try {
-        await api('DELETE', '/api/produtos/' + id, { forcar: true });
-        fecharModal('modal-produto');
-        await carregarProdutos();
-      } catch (e2) { $('prod-erro').textContent = e2.message; }
-      return;
-    }
     $('prod-erro').textContent = e.message;
+    // em vez de empilhar um segundo confirm() logo depois do primeiro (que no app instalado no
+    // iPhone pode nao aparecer direito), mostra um botao separado — o usuario clica quando quiser.
+    if (/vendas registradas/i.test(e.message)) $('btn-excluir-produto-forcado').classList.remove('oculto');
   }
+}
+
+async function excluirProdutoForcado() {
+  const id = $('prod-id').value;
+  if (!confirm('Apagar esse produto JUNTO com o histórico de vendas dele? Os totais de lucro mensal/semanal já fechados vão mudar.')) return;
+  try {
+    await api('DELETE', '/api/produtos/' + id, { forcar: true });
+    fecharModal('modal-produto');
+    await carregarProdutos();
+    await atualizarVendasSeVisivel();
+  } catch (e) { $('prod-erro').textContent = e.message; }
 }
 
 // ---------- Venda ----------

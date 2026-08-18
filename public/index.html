@@ -125,6 +125,10 @@
         <span id="produtos-selecionados-contador" class="filtro-contador" style="margin-left:0"></span>
         <button class="btn-mini" onclick="limparSelecaoProdutos()">Limpar seleção</button>
         <button class="btn-primario" onclick="exportarProdutosSelecionados()">📤 Exportar selecionados (.xlsx)</button>
+        <label class="check-linha" style="margin:0">
+          <input type="checkbox" id="forcar-exclusao-massa">
+          Apagar mesmo com vendas (também apaga o histórico de vendas)
+        </label>
         <button class="btn-perigo" onclick="excluirProdutosSelecionados()">🗑️ Excluir selecionados</button>
       </div>
       <table class="tabela">
@@ -295,6 +299,7 @@
       <div class="modal-acoes">
         <button class="btn-primario" onclick="salvarProduto()">Salvar</button>
         <button id="btn-excluir-produto" class="btn-perigo oculto" onclick="excluirProduto()">Excluir</button>
+        <button id="btn-excluir-produto-forcado" class="btn-perigo oculto" onclick="excluirProdutoForcado()">Excluir mesmo com vendas</button>
       </div>
     </div>
   </div>

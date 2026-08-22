@@ -423,19 +423,14 @@ function abrirModalVenda(id, vendaId) {
   $('venda-qtd').value = 1;
   $('venda-qtd').max = p.quantidade_restante;
   $('venda-eh-troca').checked = false;
-  $('venda-eh-troca').disabled = false;
-  $('venda-qtd').disabled = false;
-  $('venda-valor').disabled = false;
-  $('venda-destino').disabled = false;
   $('venda-valor').value = '';
   $('venda-canal').value = '';
   $('venda-data').value = new Date().toISOString().slice(0, 10);
   $('venda-obs').value = '';
   const selDestino = $('venda-destino');
-  selDestino.innerHTML = '<option value="">— nenhum (só dar baixa, sem transferir custo) —</option>' +
+  selDestino.innerHTML = '<option value="">— nenhum —</option>' +
     PRODUTOS_CACHE.filter(x => x.id !== id).map(x => `<option value="${x.id}">${x.sku ? x.sku + ' — ' : ''}${x.nome}</option>`).join('');
   alternarTroca();
-  $('venda-aviso-troca-travada').classList.add('oculto');
 
   const venda = vendaId ? PRODUTO_EM_EDICAO_VENDAS.find(v => v.id === vendaId) : null;
   if (venda) {
@@ -448,14 +443,6 @@ function abrirModalVenda(id, vendaId) {
     $('venda-obs').value = venda.obs || '';
     selDestino.value = venda.produto_destino_id || '';
     alternarTroca();
-
-    const travada = !!(venda.eh_troca && venda.produto_destino_id);
-    if (travada) {
-      $('venda-aviso-troca-travada').classList.remove('oculto');
-      $('venda-qtd').disabled = true;
-      $('venda-eh-troca').disabled = true;
-      $('venda-destino').disabled = true;
-    }
   } else {
     $('modal-venda-titulo').textContent = 'Registrar venda';
   }
@@ -478,18 +465,14 @@ async function salvarVenda() {
   const ehTroca = $('venda-eh-troca').checked;
   try {
     if (vendaId) {
-      const vendaOriginal = PRODUTO_EM_EDICAO_VENDAS.find(v => v.id === Number(vendaId));
-      const travada = !!(vendaOriginal && vendaOriginal.eh_troca && vendaOriginal.produto_destino_id);
-      const payload = travada
-        ? { valor_vendido: $('venda-valor').value || 0, canal_venda: $('venda-canal').value, data_venda: $('venda-data').value, obs: $('venda-obs').value }
-        : {
-            quantidade: $('venda-qtd').value,
-            valor_vendido: $('venda-valor').value || 0,
-            canal_venda: $('venda-canal').value,
-            data_venda: $('venda-data').value,
-            obs: $('venda-obs').value,
-            eh_troca: ehTroca,
-          };
+      const payload = {
+        quantidade: $('venda-qtd').value,
+        valor_vendido: $('venda-valor').value || 0,
+        canal_venda: $('venda-canal').value,
+        data_venda: $('venda-data').value,
+        obs: $('venda-obs').value,
+        eh_troca: ehTroca,
+      };
       await api('PUT', `/api/vendas/${vendaId}`, payload);
     } else {
       await api('POST', `/api/produtos/${id}/vender`, {

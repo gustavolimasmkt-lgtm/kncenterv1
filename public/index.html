@@ -330,13 +330,12 @@
       <input type="hidden" id="venda-produto-id">
       <input type="hidden" id="venda-id">
       <p id="venda-produto-nome" class="destaque"></p>
-      <p id="venda-aviso-troca-travada" class="aviso oculto">Essa venda foi uma troca com transferência de custo já aplicada — quantidade, "foi troca" e produto recebido ficam travados aqui (mudar isso exigiria desfazer a transferência nos dois produtos). Mas dá pra editar o valor em dinheiro, canal, data e observações.</p>
       <label>Quantidade vendida</label>
       <input id="venda-qtd" type="number" min="1" value="1">
 
       <label class="check-linha">
         <input type="checkbox" id="venda-eh-troca" onchange="alternarTroca()">
-        Foi troca — o custo desse produto passa pro produto recebido
+        Foi troca — o custo desse produto desconta do lucro na hora, igual venda normal
       </label>
 
       <div id="venda-valor-box">
@@ -345,8 +344,8 @@
       </div>
 
       <div id="venda-destino-box" class="oculto">
-        <label>Produto recebido em troca (o custo desse produto vai pra ele)</label>
-        <select id="venda-destino"><option value="">— nenhum (só dar baixa, sem transferir custo) —</option></select>
+        <label>Produto recebido em troca (opcional — só pra referência, não mexe em custo)</label>
+        <select id="venda-destino"><option value="">— nenhum —</option></select>
       </div>
 
       <label>Canal de venda</label>

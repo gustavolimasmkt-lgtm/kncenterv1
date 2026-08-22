@@ -481,7 +481,7 @@ async function salvarVenda() {
       const vendaOriginal = PRODUTO_EM_EDICAO_VENDAS.find(v => v.id === Number(vendaId));
       const travada = !!(vendaOriginal && vendaOriginal.eh_troca && vendaOriginal.produto_destino_id);
       const payload = travada
-        ? { canal_venda: $('venda-canal').value, data_venda: $('venda-data').value, obs: $('venda-obs').value }
+        ? { valor_vendido: $('venda-valor').value || 0, canal_venda: $('venda-canal').value, data_venda: $('venda-data').value, obs: $('venda-obs').value }
         : {
             quantidade: $('venda-qtd').value,
             valor_vendido: $('venda-valor').value || 0,

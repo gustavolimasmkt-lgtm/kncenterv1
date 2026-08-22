@@ -811,8 +811,13 @@ app.put('/api/vendas/:id', (req, res) => {
     if (trocaComTransferencia) {
       if (b.quantidade !== undefined && Number(b.quantidade) !== venda.quantidade)
         return err(res, 'Essa venda foi uma troca com transferencia de custo pra outro produto — nao da pra mudar a quantidade por aqui. Ajuste os dois produtos manualmente se precisar corrigir.');
-      db.prepare('UPDATE vendas SET canal_venda=?, data_venda=?, obs=? WHERE id=?')
-        .run(b.canal_venda ?? venda.canal_venda, b.data_venda || venda.data_venda, b.obs ?? venda.obs, venda.id);
+      // valor_vendido (dinheiro que entrou junto com a troca) da pra editar numa troca com
+      // transferencia — isso NAO mexe na transferencia de custo (que so depende de quantidade
+      // e produto_destino_id), so afeta o lucro dessa venda: numa troca, lucro = valor_vendido
+      // direto, porque o custo ja foi todo transferido pro produto de destino.
+      const novoValor = b.valor_vendido !== undefined && b.valor_vendido !== '' ? (Number(b.valor_vendido) || 0) : venda.valor_vendido;
+      db.prepare('UPDATE vendas SET valor_vendido=?, lucro=?, canal_venda=?, data_venda=?, obs=? WHERE id=?')
+        .run(novoValor, novoValor, b.canal_venda ?? venda.canal_venda, b.data_venda || venda.data_venda, b.obs ?? venda.obs, venda.id);
       db.prepare('INSERT INTO produtos_auditoria (produto_id,usuario_id,acao,dados_antes,dados_depois) VALUES (?,?,?,?,?)')
         .run(venda.produto_id, req.user.id, 'venda_editada', JSON.stringify(venda), JSON.stringify(b));
       return ok(res, db.prepare('SELECT * FROM vendas WHERE id=?').get(venda.id));

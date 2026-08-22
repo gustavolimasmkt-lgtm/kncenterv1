@@ -628,6 +628,29 @@ async function importarPlanilha(arquivo) {
 // ---------- Disponíveis ----------
 async function carregarDisponiveis() {
   const lista = await api('GET', '/api/dashboard/disponiveis');
+
+  // soma o custo de tudo que ainda esta parado em estoque, e quanto renderia se vendesse tudo
+  // pelo preco de anuncio cadastrado — produto sem preco de anuncio nao entra nessa segunda soma
+  // (fica de fora do "potencial", nao conta como zero, pra nao subestimar escondido).
+  const custoTotalAberto = lista.reduce((s, p) => s + (p.custo_total_restante || 0), 0);
+  const comAnuncio = lista.filter(p => p.preco_anuncio != null);
+  const potencialVenda = comAnuncio.reduce((s, p) => s + p.preco_anuncio * p.quantidade_restante, 0);
+  const custoDoComAnuncio = comAnuncio.reduce((s, p) => s + (p.custo_total_restante || 0), 0);
+  const margemPotencial = potencialVenda - custoDoComAnuncio;
+  const semAnuncio = lista.length - comAnuncio.length;
+
+  const cards = [
+    ['💰 Custo do estoque em aberto', fmt(custoTotalAberto), ''],
+    ['🎯 Potencial de venda (pelo anúncio)', fmt(potencialVenda), ''],
+    ['📈 Margem potencial (se vender tudo pelo anúncio)', fmt(margemPotencial), margemPotencial >= 0 ? 'pos' : 'neg'],
+  ];
+  $('cards-disponiveis').innerHTML = cards.map(([l, v, cls]) =>
+    `<div class="card"><div class="label">${l}</div><div class="valor ${cls}">${v}</div></div>`).join('');
+
+  $('disponiveis-aviso-sem-anuncio').classList.toggle('oculto', semAnuncio === 0);
+  if (semAnuncio > 0) $('disponiveis-aviso-sem-anuncio').textContent =
+    `${semAnuncio} produto(s) em aberto sem preço de anúncio cadastrado — não entram na soma do potencial de venda acima.`;
+
   $('lista-disponiveis').innerHTML = lista.map(p => `
     <tr>
       <td>${p.sku}</td><td>${p.nome}</td><td>${p.quantidade_restante}</td>

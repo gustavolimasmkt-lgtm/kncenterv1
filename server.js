@@ -177,11 +177,23 @@ for (const col of [
       if (!p) continue;
       const custoUnit = p.quantidade_total > 0 ? p.custo_total / p.quantidade_total : 0;
       const custo = custoUnit * v.quantidade;
-      const lucro = v.eh_troca ? v.valor_vendido : (v.valor_vendido - custo);
+      const lucro = (v.eh_troca && v.produto_destino_id) ? v.valor_vendido : (v.valor_vendido - custo);
       upd.run(custo, lucro, v.id);
     }
   }
 }
+
+// corrige (uma vez, idempotente) um bug real: toda troca marcada "eh_troca" tinha o lucro
+// gravado como o valor_vendido inteiro, mesmo quando NAO tinha produto de destino escolhido —
+// ou seja, mesmo quando o custo do produto NUNCA foi transferido pra lugar nenhum. Isso inflava
+// o lucro em exatamente o valor do custo, porque o custo ficava "esquecido": nem descontava
+// dessa venda, nem sobrava marcado em outro produto. So faz sentido lucro = valor_vendido puro
+// quando existe um produto_destino_id de verdade (custo foi transferido pra ele).
+db.prepare(`
+  UPDATE vendas SET lucro = valor_vendido - custo
+  WHERE eh_troca = 1 AND produto_destino_id IS NULL AND custo IS NOT NULL
+    AND lucro != (valor_vendido - custo)
+`).run();
 
 // seed: sócios padrão (extensível pela UI) e meta semanal padrão
 if (db.prepare('SELECT COUNT(*) as n FROM socios').get().n === 0) {
@@ -355,14 +367,19 @@ function vendasDoProduto(produtoId) {
 // depois — se o custo do produto mudar no futuro (edicao manual, ou transferencia de troca),
 // vendas ja registradas NAO mudam de valor retroativamente. So o produto/venda novos usam o
 // custo novo. Isso evita o bug de lucro de mes/semana passados mudando sozinho.
-// Quando e troca (eh_troca=1): o custo do produto trocado e transferido inteiro pro produto
-// recebido (ver rota /vender), entao esse custo NAO entra na conta do lucro aqui — ele so vira
-// lucro/prejuizo de verdade quando o produto recebido for vendido. Mas se entrou algum dinheiro
-// junto com a troca (ex: trocou + recebeu um troco em Pix), esse valor e lucro puro, porque o
-// custo dessa venda ja foi todo embutido no outro produto.
+// Quando e troca COM produto_destino_id (custo transferido inteiro pro produto recebido, ver
+// rota /vender): esse custo NAO entra na conta do lucro aqui — ele so vira lucro/prejuizo de
+// verdade quando o produto recebido for vendido. Mas se entrou algum dinheiro junto com a troca
+// (ex: trocou + recebeu um troco em Pix), esse valor e lucro puro, porque o custo dessa venda ja
+// foi todo embutido no outro produto.
+// Troca SEM produto_destino_id (marcou "eh_troca" mas escolheu "nenhum" destino) e diferente: o
+// custo desse produto NAO foi transferido pra lugar nenhum, entao precisa descontar normal —
+// senao o custo simplesmente some da conta (nem desconta aqui, nem sobra registrado em outro
+// produto), inflando o lucro em exatamente o valor do custo.
 function calcularVendaNova(produto, venda) {
   const custo = custoUnitario(produto) * venda.quantidade;
-  const lucro = venda.eh_troca ? venda.valor_vendido : (venda.valor_vendido - custo);
+  const custoTransferido = !!(venda.eh_troca && venda.produto_destino_id);
+  const lucro = custoTransferido ? venda.valor_vendido : (venda.valor_vendido - custo);
   return { custo, lucro };
 }
 
@@ -739,7 +756,10 @@ app.post('/api/produtos/:id/vender', (req, res) => {
     const valorVendido = ehTroca ? (Number(b.valor_vendido) || 0) : Number(b.valor_vendido);
     // custo/lucro sao calculados AGORA, com o custo_total do produto AGORA, e gravados —
     // nao mudam depois mesmo que o custo do produto mude (troca, edicao, etc).
-    const { custo, lucro } = calcularVendaNova(produto, { quantidade, valor_vendido: valorVendido, eh_troca: ehTroca });
+    const { custo, lucro } = calcularVendaNova(produto, {
+      quantidade, valor_vendido: valorVendido, eh_troca: ehTroca,
+      produto_destino_id: produtoDestino ? produtoDestino.id : null
+    });
 
     const r = db.prepare(`INSERT INTO vendas (produto_id,quantidade,valor_vendido,canal_venda,data_venda,obs,usuario_id,eh_troca,produto_destino_id,custo,lucro)
       VALUES (?,?,?,?,?,?,?,?,?,?,?)`)
@@ -833,7 +853,12 @@ app.put('/api/vendas/:id', (req, res) => {
     if (!b.data_venda) return err(res, 'Data da venda obrigatoria');
 
     const valorVendido = ehTroca ? (Number(b.valor_vendido) || 0) : Number(b.valor_vendido);
-    const { custo, lucro } = calcularVendaNova(produto, { quantidade: novaQuantidade, valor_vendido: valorVendido, eh_troca: ehTroca });
+    // essa venda nunca tem produto_destino_id aqui (se tivesse, teria caido no ramo travado
+    // "trocaComTransferencia" la em cima, que nao chega ate essa linha).
+    const { custo, lucro } = calcularVendaNova(produto, {
+      quantidade: novaQuantidade, valor_vendido: valorVendido, eh_troca: ehTroca,
+      produto_destino_id: venda.produto_destino_id
+    });
 
     db.prepare('UPDATE vendas SET quantidade=?, valor_vendido=?, canal_venda=?, data_venda=?, obs=?, eh_troca=?, custo=?, lucro=? WHERE id=?')
       .run(novaQuantidade, valorVendido, b.canal_venda || '', b.data_venda, b.obs || '', ehTroca ? 1 : 0, custo, lucro, venda.id);

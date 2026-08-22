@@ -159,6 +159,8 @@ for (const col of [
   "ALTER TABLE vendas ADD COLUMN produto_destino_id INTEGER REFERENCES produtos(id)",
   "ALTER TABLE vendas ADD COLUMN custo REAL",
   "ALTER TABLE vendas ADD COLUMN lucro REAL",
+  "ALTER TABLE vendas ADD COLUMN custo_transferido REAL DEFAULT 0",
+  "ALTER TABLE vendas ADD COLUMN custo_transferido_split TEXT",
 ]) {
   try { db.exec(col); } catch (e) { /* coluna ja existe, ignora */ }
 }
@@ -221,6 +223,38 @@ if (db.prepare('SELECT COUNT(*) as n FROM socios').get().n === 0) {
 }
 if (!db.prepare("SELECT valor FROM config WHERE chave='meta_semanal_por_socio'").get()) {
   db.prepare("INSERT INTO config (chave, valor) VALUES ('meta_semanal_por_socio', '1000')").run();
+}
+
+// NOVO modelo de troca (pedido do dono): quando a troca nao tem dinheiro suficiente pra cobrir o
+// custo do item que saiu (ex: troca direta sem grana, ou troca com "volta" pequena), o lucro
+// dessa venda NUNCA fica negativo — o que falta de cobertura e transferido pro produto de DESTINO
+// (o item que entrou no lugar), na mesma proporcao de investimento que os socios tinham no produto
+// de origem. O custo nao vira prejuizo, ele "muda de produto": o item novo passa a carregar o
+// custo que faltou cobrir. Se o valor recebido cobre o custo inteiro (ou nem e troca), funciona
+// igual venda normal: lucro = valor − custo, sem transferir nada (calcularVendaComTroca).
+// Roda uma vez, idempotente (custo_transferido so fica >0 depois de aplicada), pras trocas que ja
+// existiam antes dessa mudanca e ainda estavam com lucro negativo.
+//
+// IMPORTANTE: as trocas que ja existiam no banco (cadastradas na mao pelo dono depois da
+// reimportacao da planilha) tem o produto de DESTINO com o custo_total JA batendo com o valor da
+// troca (confirmado com o dono: o custo do produto recebido ja É o valor do item trocado, nao e
+// dinheiro separado). Por isso essa correcao retroativa so ZERA o lucro dessas vendas — NAO soma
+// nada de novo no custo_total do destino, pra nao duplicar um valor que ja esta la. So a partir de
+// agora (vendas novas, ou trocas com destino que ainda nao tem custo proprio) que o sistema faz a
+// transferencia de verdade sozinho — ver calcularVendaComTroca.
+{
+  const trocasSemAjuste = db.prepare(`
+    SELECT * FROM vendas
+    WHERE eh_troca = 1 AND produto_destino_id IS NOT NULL
+      AND (custo_transferido IS NULL OR custo_transferido = 0)
+      AND custo IS NOT NULL AND (custo - valor_vendido) > 0.01
+  `).all();
+  for (const v of trocasSemAjuste) {
+    const deficit = v.custo - v.valor_vendido;
+    db.prepare('UPDATE vendas SET lucro=0, custo_transferido=? WHERE id=?').run(deficit, v.id);
+    db.prepare('INSERT INTO produtos_auditoria (produto_id,usuario_id,acao,dados_depois) VALUES (?,?,?,?)')
+      .run(v.produto_destino_id, null, 'lucro_troca_zerado_custo_ja_no_destino', JSON.stringify({ venda_id: v.id, deficit, aviso: 'custo do produto de destino ja incluia o valor da troca, nao foi somado de novo' }));
+  }
 }
 
 const ok  = (res, data) => res.json({ ok: true, data });
@@ -381,19 +415,66 @@ function vendasDoProduto(produtoId) {
   return db.prepare('SELECT * FROM vendas WHERE produto_id=? ORDER BY data_venda').all(produtoId);
 }
 
-// Calcula o custo/lucro de uma venda NOVA (usa o custo_total do produto no momento exato da
-// venda). O resultado e gravado nas colunas custo/lucro da propria venda e nunca mais recalculado
-// depois — se o custo do produto mudar no futuro (edicao manual, etc.), vendas ja registradas NAO
-// mudam de valor retroativamente. So o produto/venda novos usam o custo novo. Isso evita o bug de
-// lucro de mes/semana passados mudando sozinho.
-// Troca ou venda normal usam a MESMA conta: lucro = valor recebido − custo do item que saiu.
-// produto_destino_id (quando marcado "eh_troca") e so um link de referencia pra saber o que
-// entrou no lugar — nao muda o custo de nenhum produto, e nao adia o desconto do custo pra
-// depois. O custo do item trocado e descontado JA, na hora da troca, igual qualquer venda.
-function calcularVendaNova(produto, venda) {
+// Proporcao de investimento de cada socio num produto (pra saber como dividir um valor
+// transferido pra outro produto). Se o produto nao tem investimento registrado (ou custo_total
+// e 0 — ex: recebido so por troca, sem grana), divide igual entre os socios ativos.
+function proporcoesInvestimento(produtoId) {
+  const investimentos = investimentosDoProduto(produtoId);
+  const total = investimentos.reduce((s, i) => s + i.valor, 0);
+  if (total > 0) return investimentos.map(i => ({ socio_id: i.socio_id, proporcao: i.valor / total }));
+  const socios = db.prepare('SELECT id FROM socios WHERE ativo=1').all();
+  if (!socios.length) return [];
+  return socios.map(s => ({ socio_id: s.id, proporcao: 1 / socios.length }));
+}
+
+// Move `valor` do custo pro produto de DESTINO de uma troca (soma no custo_total dele e no
+// investimento de cada socio, na mesma proporcao que tinham no produto de origem). Devolve o
+// split exato (quanto cada socio recebeu) pra dar pra desfazer com precisao depois, se a venda
+// for editada ou excluida.
+function aplicarTransferenciaCusto(destinoId, valor, proporcoes) {
+  if (valor <= 0 || !proporcoes.length) return {};
+  db.prepare('UPDATE produtos SET custo_total = custo_total + ? WHERE id=?').run(valor, destinoId);
+  const upsert = db.prepare(`
+    INSERT INTO produto_investimentos (produto_id, socio_id, valor) VALUES (?,?,?)
+    ON CONFLICT(produto_id, socio_id) DO UPDATE SET valor = valor + excluded.valor
+  `);
+  const split = {};
+  for (const p of proporcoes) {
+    const parte = valor * p.proporcao;
+    upsert.run(destinoId, p.socio_id, parte);
+    split[p.socio_id] = parte;
+  }
+  return split;
+}
+
+// Desfaz uma transferencia anterior (edicao/exclusao de venda): tira do custo_total do destino e
+// do investimento de cada socio exatamente o valor gravado no split (nao recalcula proporcao
+// nova). Trava em 0 pra nao ficar negativo se o produto ja foi mexido manualmente depois.
+function reverterTransferenciaCusto(destinoId, split) {
+  if (!destinoId || !split) return;
+  const destino = db.prepare('SELECT id FROM produtos WHERE id=?').get(destinoId);
+  if (!destino) return; // produto de destino ja foi excluido — nao ha o que reverter
+  const totalSplit = Object.values(split).reduce((s, v) => s + v, 0);
+  db.prepare('UPDATE produtos SET custo_total = MAX(0, custo_total - ?) WHERE id=?').run(totalSplit, destinoId);
+  const upd = db.prepare('UPDATE produto_investimentos SET valor = MAX(0, valor - ?) WHERE produto_id=? AND socio_id=?');
+  for (const socioId of Object.keys(split)) upd.run(split[socioId], destinoId, Number(socioId));
+}
+
+// Calcula o custo/lucro de uma venda (usa o custo_total do produto no momento exato da venda) e,
+// se for troca com destino e o dinheiro recebido nao cobrir o custo inteiro, transfere a
+// diferenca pro produto de destino em vez de deixar a venda no prejuizo — o item que saiu virou o
+// item que entrou, o custo so muda de produto, nao vira perda. O resultado e gravado nas colunas
+// custo/lucro/custo_transferido da propria venda e nunca mais recalculado depois — se o custo do
+// produto mudar no futuro, vendas ja registradas NAO mudam de valor retroativamente.
+function calcularVendaComTroca(produto, destinoId, venda) {
   const custo = custoUnitario(produto) * venda.quantidade;
-  const lucro = venda.valor_vendido - custo;
-  return { custo, lucro };
+  const deficit = custo - venda.valor_vendido;
+  if (destinoId && deficit > 0.01) {
+    const proporcoes = proporcoesInvestimento(produto.id);
+    const split = aplicarTransferenciaCusto(destinoId, deficit, proporcoes);
+    return { custo, lucro: 0, transferido: deficit, split };
+  }
+  return { custo, lucro: venda.valor_vendido - custo, transferido: 0, split: null };
 }
 
 // Le o custo/lucro JA CONGELADO de uma venda existente (gravado na hora em que ela foi criada
@@ -622,7 +703,17 @@ app.put('/api/produtos/:id', (req, res) => {
 // produto que tenha esse aqui como destino de troca (fica sem destino, mas nao quebra).
 function excluirProdutoDb(produto, usuarioId, forcarComVendas) {
   if (forcarComVendas) {
+    // antes de apagar as vendas desse produto, desfaz qualquer transferencia de custo que elas
+    // tinham mandado pra um produto de destino (troca sem dinheiro suficiente) — senao o destino
+    // fica com custo a mais que ninguem mais sabe de onde veio.
+    const vendasComTransferencia = db.prepare('SELECT * FROM vendas WHERE produto_id=? AND custo_transferido > 0').all(produto.id);
+    for (const v of vendasComTransferencia) {
+      if (v.custo_transferido_split) reverterTransferenciaCusto(v.produto_destino_id, JSON.parse(v.custo_transferido_split));
+    }
     db.prepare('DELETE FROM vendas WHERE produto_id=?').run(produto.id);
+    // se esse produto era o DESTINO de alguma troca de outro produto, so desvincula a referencia —
+    // o custo que foi transferido pra ele fica perdido junto (caso raro: excluir forcado um
+    // produto logo depois de receber troca, antes de qualquer outra edicao).
     db.prepare('UPDATE vendas SET produto_destino_id=NULL WHERE produto_destino_id=?').run(produto.id);
   }
   const fotos = db.prepare('SELECT arquivo FROM produto_fotos WHERE produto_id=?').all(produto.id);
@@ -745,10 +836,12 @@ app.delete('/api/fotos/:id', (req, res) => {
 
 // ---------- VENDAS ----------
 // Registrar uma venda normal (com valor em dinheiro) ou uma troca (valor opcional — pode ser so
-// dinheiro que entrou junto, ou zero numa troca direta). O lucro sempre desconta o custo do
-// produto que saiu NA HORA, troca ou nao — nao existe mais transferencia de custo pro produto
-// recebido. produto_destino_id (quando marcado "eh_troca") e so um link de referencia, pra saber
-// o que entrou no lugar; nao mexe no custo_total nem nos investimentos de nenhum produto.
+// dinheiro que entrou junto, ou zero numa troca direta). O lucro desconta o custo do produto que
+// saiu NA HORA, troca ou nao. Se for troca com produto de destino selecionado E o dinheiro
+// recebido nao cobrir o custo inteiro, a diferenca e transferida pro custo_total do destino (e
+// pro investimento de cada socio, na mesma proporcao que tinham no produto de origem) — assim o
+// lucro dessa venda nunca fica negativo, e o custo "muda de produto" em vez de virar prejuizo
+// (ver calcularVendaComTroca). Sem destino selecionado, nao ha pra onde transferir.
 app.post('/api/produtos/:id/vender', (req, res) => {
   try {
     const produto = db.prepare('SELECT * FROM produtos WHERE id=?').get(req.params.id);
@@ -769,14 +862,17 @@ app.post('/api/produtos/:id/vender', (req, res) => {
     }
 
     const valorVendido = ehTroca ? (Number(b.valor_vendido) || 0) : Number(b.valor_vendido);
+    const destinoId = produtoDestino ? produtoDestino.id : null;
     // custo/lucro sao calculados AGORA, com o custo_total do produto AGORA, e gravados —
-    // nao mudam depois mesmo que o custo do produto mude (edicao manual, etc).
-    const { custo, lucro } = calcularVendaNova(produto, { quantidade, valor_vendido: valorVendido });
+    // nao mudam depois mesmo que o custo do produto mude (edicao manual, etc). Se for troca sem
+    // dinheiro suficiente pra cobrir o custo, a diferenca e transferida pro produto de destino
+    // (ver calcularVendaComTroca) — o lucro dessa venda nunca fica negativo.
+    const { custo, lucro, transferido, split } = calcularVendaComTroca(produto, destinoId, { quantidade, valor_vendido: valorVendido });
 
-    const r = db.prepare(`INSERT INTO vendas (produto_id,quantidade,valor_vendido,canal_venda,data_venda,obs,usuario_id,eh_troca,produto_destino_id,custo,lucro)
-      VALUES (?,?,?,?,?,?,?,?,?,?,?)`)
+    const r = db.prepare(`INSERT INTO vendas (produto_id,quantidade,valor_vendido,canal_venda,data_venda,obs,usuario_id,eh_troca,produto_destino_id,custo,lucro,custo_transferido,custo_transferido_split)
+      VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)`)
       .run(produto.id, quantidade, valorVendido, b.canal_venda || (ehTroca ? 'Troca' : ''), b.data_venda, b.obs || '',
-           req.user.id, ehTroca ? 1 : 0, produtoDestino ? produtoDestino.id : null, custo, lucro);
+           req.user.id, ehTroca ? 1 : 0, destinoId, custo, lucro, transferido, split ? JSON.stringify(split) : null);
     db.prepare('UPDATE produtos SET quantidade_vendida = quantidade_vendida + ? WHERE id=?').run(quantidade, produto.id);
 
     const depois = db.prepare('SELECT * FROM produtos WHERE id=?').get(produto.id);
@@ -823,10 +919,16 @@ app.put('/api/vendas/:id', (req, res) => {
     if (!b.data_venda) return err(res, 'Data da venda obrigatoria');
 
     const valorVendido = ehTroca ? (Number(b.valor_vendido) || 0) : Number(b.valor_vendido);
-    const { custo, lucro } = calcularVendaNova(produto, { quantidade: novaQuantidade, valor_vendido: valorVendido });
+    // o formulario de edicao nao deixa trocar o produto de destino depois de criada — so
+    // desfaz/refaz a transferencia com o MESMO destino, se ainda existia um.
+    const destinoId = venda.produto_destino_id || null;
+    if (venda.custo_transferido > 0 && venda.custo_transferido_split) {
+      reverterTransferenciaCusto(venda.produto_destino_id, JSON.parse(venda.custo_transferido_split));
+    }
+    const { custo, lucro, transferido, split } = calcularVendaComTroca(produto, ehTroca ? destinoId : null, { quantidade: novaQuantidade, valor_vendido: valorVendido });
 
-    db.prepare('UPDATE vendas SET quantidade=?, valor_vendido=?, canal_venda=?, data_venda=?, obs=?, eh_troca=?, custo=?, lucro=? WHERE id=?')
-      .run(novaQuantidade, valorVendido, b.canal_venda || '', b.data_venda, b.obs || '', ehTroca ? 1 : 0, custo, lucro, venda.id);
+    db.prepare('UPDATE vendas SET quantidade=?, valor_vendido=?, canal_venda=?, data_venda=?, obs=?, eh_troca=?, custo=?, lucro=?, custo_transferido=?, custo_transferido_split=? WHERE id=?')
+      .run(novaQuantidade, valorVendido, b.canal_venda || '', b.data_venda, b.obs || '', ehTroca ? 1 : 0, custo, lucro, transferido, split ? JSON.stringify(split) : null, venda.id);
     db.prepare('UPDATE produtos SET quantidade_vendida = quantidade_vendida + ? WHERE id=?')
       .run(novaQuantidade - venda.quantidade, produto.id);
 
@@ -842,6 +944,9 @@ app.put('/api/vendas/:id', (req, res) => {
 app.delete('/api/vendas/:id', (req, res) => {
   const venda = db.prepare('SELECT * FROM vendas WHERE id=?').get(req.params.id);
   if (!venda) return err(res, 'Venda nao encontrada', 404);
+  if (venda.custo_transferido > 0 && venda.custo_transferido_split) {
+    reverterTransferenciaCusto(venda.produto_destino_id, JSON.parse(venda.custo_transferido_split));
+  }
   db.prepare('UPDATE produtos SET quantidade_vendida = quantidade_vendida - ? WHERE id=?').run(venda.quantidade, venda.produto_id);
   db.prepare('DELETE FROM vendas WHERE id=?').run(req.params.id);
   db.prepare('INSERT INTO produtos_auditoria (produto_id,usuario_id,acao,dados_antes) VALUES (?,?,?,?)')

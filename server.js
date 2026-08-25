@@ -483,6 +483,19 @@ function lerVendaCongelada(venda) {
   return { custo: venda.custo ?? 0, lucro: venda.lucro ?? 0 };
 }
 
+// Farol de performance: classifica o retorno de uma venda (ou de um produto, agregando todas as
+// vendas dele) com base no % de lucro sobre o custo. Troca sem dinheiro suficiente pra cobrir o
+// custo (lucro sempre 0 por design — ver calcularVendaComTroca) NAO entra na cor: ganha um selo
+// neutro "troca", porque nao houve retorno em dinheiro pra medir, e nao e justo marcar como Ruim.
+// Prejuízo de verdade (retorno negativo, venda com dinheiro mesmo) entra junto no vermelho.
+function classificarFarol(lucro, custo, ehTrocaSemDinheiro) {
+  if (ehTrocaSemDinheiro) return { tipo: 'troca' };
+  if (!(custo > 0)) return null; // sem base pra calcular retorno (produto de custo zero)
+  const retorno = (lucro / custo) * 100;
+  const cor = retorno >= 50 ? 'verde' : retorno >= 30 ? 'amarelo' : 'vermelho';
+  return { tipo: 'cor', cor, retorno };
+}
+
 function retratoProduto(produto) {
   const investimentos = investimentosDoProduto(produto.id);
   const totalInvestido = investimentos.reduce((s, i) => s + i.valor, 0);
@@ -490,13 +503,23 @@ function retratoProduto(produto) {
   const nSocios = socioIds.length || 1;
   const vendas = vendasDoProduto(produto.id);
 
-  let lucroTotalRealizado = 0, arrecadadoTotal = 0;
+  let lucroTotalRealizado = 0, arrecadadoTotal = 0, custoVendidoTotal = 0;
+  let todasSaoTrocaSemDinheiro = vendas.length > 0;
   const vendasCalc = vendas.map(v => {
     const { custo, lucro } = lerVendaCongelada(v);
+    const ehTrocaSemDinheiro = !!(v.eh_troca && v.custo_transferido > 0);
+    if (!ehTrocaSemDinheiro) todasSaoTrocaSemDinheiro = false;
     lucroTotalRealizado += lucro;
     arrecadadoTotal += v.valor_vendido;
-    return { ...v, custo, lucro };
+    custoVendidoTotal += custo;
+    return { ...v, custo, lucro, farol: classificarFarol(lucro, custo, ehTrocaSemDinheiro) };
   });
+  // farol do produto: agrega todas as vendas dele com a mesma regra (mesma cor pro mesmo caso em
+  // qualquer tela). So troca se TODAS as vendas realizadas foram troca sem dinheiro — se teve
+  // pelo menos uma venda com dinheiro de verdade, o retorno agregado entra na conta normal.
+  const farolProduto = produto.quantidade_vendida > 0
+    ? classificarFarol(lucroTotalRealizado, custoVendidoTotal, todasSaoTrocaSemDinheiro)
+    : null;
 
   const restante = produto.quantidade_total - produto.quantidade_vendida;
   const custoUnit = custoUnitario(produto);
@@ -527,6 +550,7 @@ function retratoProduto(produto) {
     total_investido: totalInvestido,
     investimentos,
     vendas: vendasCalc,
+    farol: farolProduto,
     arrecadado_total: arrecadadoTotal,
     lucro_total_realizado: lucroTotalRealizado,
     lucro_min_estimado_aberto: lucroMinEstimadoAberto,
@@ -898,7 +922,11 @@ app.get('/api/vendas', (_, res) => {
     LEFT JOIN produtos d ON d.id = v.produto_destino_id
     ORDER BY v.data_venda DESC, v.id DESC
   `).all();
-  ok(res, linhas.map(v => ({ ...v, ...lerVendaCongelada(v) })));
+  ok(res, linhas.map(v => {
+    const { custo, lucro } = lerVendaCongelada(v);
+    const farol = classificarFarol(lucro, custo, !!(v.eh_troca && v.custo_transferido > 0));
+    return { ...v, custo, lucro, farol };
+  }));
 });
 
 // Editar uma venda ja registrada. Troca ou venda normal — mesma regra, sem trava especial
@@ -969,6 +997,16 @@ app.post('/api/lancamentos', (req, res) => {
     .run(b.tipo, b.descricao, Number(b.valor), b.socio_id || null, b.data, req.user.id);
   ok(res, db.prepare('SELECT * FROM lancamentos WHERE id=?').get(r.lastInsertRowid));
 });
+app.put('/api/lancamentos/:id', (req, res) => {
+  const item = db.prepare('SELECT * FROM lancamentos WHERE id=?').get(req.params.id);
+  if (!item) return err(res, 'Lancamento nao encontrado', 404);
+  const b = req.body;
+  if (!b.descricao || !b.valor || !b.data || !b.tipo) return err(res, 'Descricao, valor, data e tipo obrigatorios');
+  db.prepare('UPDATE lancamentos SET tipo=?, descricao=?, valor=?, socio_id=?, data=? WHERE id=?')
+    .run(b.tipo, b.descricao, Number(b.valor), b.socio_id || null, b.data, req.params.id);
+  ok(res, db.prepare('SELECT * FROM lancamentos WHERE id=?').get(req.params.id));
+});
+
 app.delete('/api/lancamentos/:id', (req, res) => {
   const item = db.prepare('SELECT * FROM lancamentos WHERE id=?').get(req.params.id);
   if (!item) return err(res, 'Lancamento nao encontrado', 404);

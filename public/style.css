@@ -122,6 +122,14 @@ h2 { margin: 0 0 14px; }
 .mini-tabela-vendas td.pos { color: #1a8f4c; font-weight: 600; }
 .mini-tabela-vendas td.neg { color: #c73333; font-weight: 600; }
 
+/* ---- Farol de performance de vendas ---- */
+.farol { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; }
+.farol-bolinha { width: 12px; height: 12px; border-radius: 50%; display: inline-block; flex-shrink: 0; }
+.farol-bolinha.verde { background: #22c55e; }
+.farol-bolinha.amarelo { background: #eab308; }
+.farol-bolinha.vermelho { background: #ef4444; }
+.farol-troca { background: #eef0f3; color: #666; padding: 3px 8px; border-radius: 20px; font-size: 12px; font-weight: 600; }
+
 /* ---- Barra de baixo (mobile) — escondida no desktop, o menu de cima cuida disso la ---- */
 .tab-bar-mobile { display: none; }
 .mais-lista { display: flex; flex-direction: column; gap: 8px; }

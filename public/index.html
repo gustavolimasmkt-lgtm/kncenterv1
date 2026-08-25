@@ -177,7 +177,7 @@
       <table class="tabela">
         <thead><tr>
           <th>Data</th><th>Produto</th><th>Qtd</th><th>Valor</th><th>Custo</th><th>Lucro</th>
-          <th>Canal</th><th>Troca?</th><th></th>
+          <th>Farol</th><th>Canal</th><th>Troca?</th><th></th>
         </tr></thead>
         <tbody id="lista-vendas"></tbody>
       </table>
@@ -362,8 +362,9 @@
 
 <div id="modal-lancamento" class="modal oculto">
   <div class="modal-conteudo">
-    <div class="modal-header"><h3>Novo lançamento</h3><span class="fechar" onclick="fecharModal('modal-lancamento')">&times;</span></div>
+    <div class="modal-header"><h3 id="modal-lancamento-titulo">Novo lançamento</h3><span class="fechar" onclick="fecharModal('modal-lancamento')">&times;</span></div>
     <div class="modal-body">
+      <input type="hidden" id="lanc-id">
       <label>Tipo</label>
       <select id="lanc-tipo"><option value="saida">Saída (despesa)</option><option value="entrada">Entrada (receita)</option></select>
       <label>Descrição</label>

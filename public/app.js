@@ -147,6 +147,16 @@ function tagClasseStatus(status) {
   return status === 'Disponível' ? 'disp' : (status.toLowerCase().includes('vendido') || status === 'Esgotado' ? 'vendido' : 'outro');
 }
 
+// Farol de performance: bolinha colorida (verde/amarelo/vermelho) com o % de retorno no title, ou
+// selo neutro "Troca" quando foi troca sem dinheiro suficiente pra medir retorno. Mesma regra e
+// mesmo HTML em todo lugar que mostra farol (Vendas, lista de produtos, vendas dentro do produto).
+function renderFarol(farol) {
+  if (!farol) return '';
+  if (farol.tipo === 'troca') return `<span class="farol-troca">Troca</span>`;
+  const label = `${farol.cor === 'verde' ? 'Bom' : farol.cor === 'amarelo' ? 'Médio' : 'Ruim'} (${farol.retorno.toFixed(1)}%)`;
+  return `<span class="farol" title="${label}"><span class="farol-bolinha ${farol.cor}"></span>${label}</span>`;
+}
+
 async function carregarProdutos() {
   PRODUTOS_CACHE = await api('GET', '/api/produtos');
   // tira da selecao produtos que sumiram (ex: excluidos por outra aba)
@@ -179,7 +189,7 @@ function renderProdutos() {
       <td>${p.quantidade_vendida}/${p.quantidade_total}</td>
       <td>${fmt(p.custo_unitario)}</td>
       <td>${fmt(p.preco_anuncio)}</td>
-      <td><span class="tag ${tagClasseStatus(p.status)}">${p.status}</span></td>
+      <td><span class="tag ${tagClasseStatus(p.status)}">${p.status}</span> ${tagClasseStatus(p.status) === 'vendido' ? renderFarol(p.farol) : ''}</td>
       <td>
         ${p.quantidade_restante > 0 ? `<button class="btn-mini venda" onclick="abrirModalVenda(${p.id})">Vender</button>` : ''}
         <button class="btn-mini" onclick="abrirModalProduto(${p.id})">Editar</button>
@@ -340,13 +350,14 @@ async function abrirModalProduto(id) {
         <td>${v.quantidade}x</td>
         <td>${v.eh_troca ? 'Troca' : fmt(v.valor_vendido)}</td>
         <td class="${v.lucro >= 0 ? 'pos' : 'neg'}">${fmt(v.lucro)}</td>
+        <td>${renderFarol(v.farol)}</td>
         <td>${v.canal_venda || ''}</td>
         <td>
           <button class="btn-mini" onclick="abrirModalVenda(${p.id}, ${v.id})">Editar</button>
           <button class="btn-mini" onclick="excluirVendaExistente(${v.id}, ${p.id})">Excluir</button>
         </td>
       </tr>
-    `).join('') || '<tr><td colspan="6">Nenhuma venda registrada ainda.</td></tr>';
+    `).join('') || '<tr><td colspan="7">Nenhuma venda registrada ainda.</td></tr>';
   } else {
     PRODUTO_EM_EDICAO_VENDAS = [];
     $('modal-produto-titulo').textContent = 'Novo produto';
@@ -557,6 +568,7 @@ function renderVendas() {
       <td>${v.eh_troca ? (v.valor_vendido ? fmt(v.valor_vendido) : '—') : fmt(v.valor_vendido)}</td>
       <td>${fmt(v.custo)}</td>
       <td class="${v.lucro >= 0 ? 'pos' : 'neg'}">${fmt(v.lucro)}</td>
+      <td>${renderFarol(v.farol)}</td>
       <td>${v.canal_venda || ''}</td>
       <td>${v.eh_troca ? ('Sim' + (v.produto_destino_nome ? ` → ${v.produto_destino_nome}` : '')) : 'Não'}</td>
       <td>
@@ -564,7 +576,7 @@ function renderVendas() {
         <button class="btn-mini" onclick="excluirVendaStandalone(${v.id})">Excluir</button>
       </td>
     </tr>
-  `).join('') || `<tr><td colspan="9">${VENDAS_CACHE.length ? 'Nenhuma venda bate com esse filtro.' : 'Nenhuma venda registrada ainda.'}</td></tr>`;
+  `).join('') || `<tr><td colspan="10">${VENDAS_CACHE.length ? 'Nenhuma venda bate com esse filtro.' : 'Nenhuma venda registrada ainda.'}</td></tr>`;
 }
 
 function abrirModalVendaStandalone(vendaId) {
@@ -739,28 +751,37 @@ function renderLancamentos() {
       <td>${l.descricao}</td>
       <td>${l.socio_nome || 'Loja'}</td>
       <td class="${l.tipo === 'entrada' ? 'valor pos' : 'valor neg'}">${fmt(l.valor)}</td>
-      <td><button class="btn-mini" onclick="excluirLancamento(${l.id})">Excluir</button></td>
+      <td>
+        <button class="btn-mini" onclick="abrirModalLancamento(${l.id})">Editar</button>
+        <button class="btn-mini" onclick="excluirLancamento(${l.id})">Excluir</button>
+      </td>
     </tr>
   `).join('') || `<tr><td colspan="6">${LANCAMENTOS_CACHE.length ? 'Nenhum lançamento bate com esse filtro.' : 'Nenhum lançamento ainda.'}</td></tr>`;
 }
 
-function abrirModalLancamento() {
+function abrirModalLancamento(id) {
   $('lanc-erro').textContent = '';
-  $('lanc-tipo').value = 'saida';
-  $('lanc-descricao').value = '';
-  $('lanc-valor').value = '';
-  $('lanc-socio').value = '';
-  $('lanc-data').value = new Date().toISOString().slice(0, 10);
+  const lanc = id ? LANCAMENTOS_CACHE.find(l => l.id === id) : null;
+  $('lanc-id').value = lanc ? lanc.id : '';
+  $('modal-lancamento-titulo').textContent = lanc ? 'Editar lançamento' : 'Novo lançamento';
+  $('lanc-tipo').value = lanc ? lanc.tipo : 'saida';
+  $('lanc-descricao').value = lanc ? lanc.descricao : '';
+  $('lanc-valor').value = lanc ? lanc.valor : '';
+  $('lanc-socio').value = lanc ? (lanc.socio_id || '') : '';
+  $('lanc-data').value = lanc ? lanc.data : new Date().toISOString().slice(0, 10);
   $('modal-lancamento').classList.remove('oculto');
 }
 
 async function salvarLancamento() {
   $('lanc-erro').textContent = '';
+  const id = $('lanc-id').value;
+  const payload = {
+    tipo: $('lanc-tipo').value, descricao: $('lanc-descricao').value,
+    valor: $('lanc-valor').value, socio_id: $('lanc-socio').value || null, data: $('lanc-data').value
+  };
   try {
-    await api('POST', '/api/lancamentos', {
-      tipo: $('lanc-tipo').value, descricao: $('lanc-descricao').value,
-      valor: $('lanc-valor').value, socio_id: $('lanc-socio').value || null, data: $('lanc-data').value
-    });
+    if (id) await api('PUT', `/api/lancamentos/${id}`, payload);
+    else await api('POST', '/api/lancamentos', payload);
     fecharModal('modal-lancamento');
     await carregarLancamentos();
   } catch (e) { $('lanc-erro').textContent = e.message; }

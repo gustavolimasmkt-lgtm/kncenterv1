@@ -184,37 +184,14 @@ for (const col of [
   }
 }
 
-// Corrige (uma vez, idempotente) o modelo antigo de troca: ate aqui, uma troca com produto de
-// destino escolhido NAO descontava o custo do lucro (ficava lucro = valor_vendido inteiro) E
-// transferia fisicamente o custo (e os investimentos por socio) pro produto de destino. O dono
-// da loja pediu pra mudar: o custo tem que descontar NA HORA da troca, igual venda normal — sem
-// transferir nada. Entao aqui: (1) devolve o custo_total que tinha sido tirado do produto de
-// origem, (2) corrige o lucro dessa venda pra valor_vendido − custo. NAO mexe nos investimentos
-// por socio do produto de destino (a soma pode ficar descasada do custo_total dele depois dessa
-// correcao) — o proprio formulario de Produtos ja trava a edicao se a soma nao bater, entao isso
-// forca uma conferencia manual em vez de tentar adivinhar a divisao por socio automaticamente.
-{
-  const trocasComDestino = db.prepare(`
-    SELECT * FROM vendas
-    WHERE eh_troca = 1 AND produto_destino_id IS NOT NULL AND custo IS NOT NULL
-      AND lucro != (valor_vendido - custo)
-  `).all();
-  for (const v of trocasComDestino) {
-    const origem = db.prepare('SELECT * FROM produtos WHERE id=?').get(v.produto_id);
-    if (origem) {
-      db.prepare('UPDATE produtos SET custo_total = custo_total + ? WHERE id=?').run(v.custo, origem.id);
-      db.prepare('INSERT INTO produtos_auditoria (produto_id,usuario_id,acao,dados_depois) VALUES (?,?,?,?)')
-        .run(origem.id, null, 'custo_devolvido_troca_simplificada', JSON.stringify({ venda_id: v.id, valor_devolvido: v.custo }));
-    }
-    const destino = db.prepare('SELECT * FROM produtos WHERE id=?').get(v.produto_destino_id);
-    if (destino) {
-      db.prepare('UPDATE produtos SET custo_total = MAX(0, custo_total - ?) WHERE id=?').run(v.custo, destino.id);
-      db.prepare('INSERT INTO produtos_auditoria (produto_id,usuario_id,acao,dados_depois) VALUES (?,?,?,?)')
-        .run(destino.id, null, 'custo_removido_troca_simplificada', JSON.stringify({ venda_id: v.id, valor_removido: v.custo, aviso: 'confira a divisao por socio desse produto — pode estar descasada do custo_total agora' }));
-    }
-    db.prepare('UPDATE vendas SET lucro = ? WHERE id=?').run(v.valor_vendido - v.custo, v.id);
-  }
-}
+// (Bloco antigo "Corrige o modelo antigo de troca" removido em 2026-08-26 — era pra rodar uma vez
+// so, mas o gatilho dele (lucro != valor_vendido - custo) volta a ser verdadeiro pra QUALQUER
+// troca com lucro=0, que e o estado CORRETO e permanente desde que o custo passou a ser
+// transferido pro produto de destino (ver calcularVendaComTroca). Resultado: a cada reinicio do
+// servidor ele achava que toda troca-com-destino-zerada era o modelo antigo bugado e revertia —
+// duplicando o custo_total do produto de origem e zerando o do destino, de novo a cada boot. Isso
+// corrompeu de verdade o custo de 4 produtos em producao. A migracao de reparo logo abaixo
+// conserta o estrago; esse bloco foi apagado pra nunca mais rodar.
 
 // seed: sócios padrão (extensível pela UI) e meta semanal padrão
 if (db.prepare('SELECT COUNT(*) as n FROM socios').get().n === 0) {
@@ -254,6 +231,34 @@ if (!db.prepare("SELECT valor FROM config WHERE chave='meta_semanal_por_socio'")
     db.prepare('UPDATE vendas SET lucro=0, custo_transferido=? WHERE id=?').run(deficit, v.id);
     db.prepare('INSERT INTO produtos_auditoria (produto_id,usuario_id,acao,dados_depois) VALUES (?,?,?,?)')
       .run(v.produto_destino_id, null, 'lucro_troca_zerado_custo_ja_no_destino', JSON.stringify({ venda_id: v.id, deficit, aviso: 'custo do produto de destino ja incluia o valor da troca, nao foi somado de novo' }));
+  }
+}
+
+// Reparo (uma vez, idempotente) do estrago causado pelo bug acima (bloco antigo removido): pra
+// toda troca onde custo_transferido>0 mas o lucro nao esta zerado (sinal claro de que o bloco
+// antigo reverteu essa venda num reinicio anterior do servidor), restaura o custo_total do
+// produto de origem e do produto de destino usando a soma dos investimentos por socio de cada um
+// como referencia — os investimentos NUNCA foram mexidos pela corrupcao, entao continuam sendo o
+// valor certo — e zera o lucro da venda de novo.
+{
+  const corrompidas = db.prepare(`
+    SELECT * FROM vendas WHERE eh_troca = 1 AND produto_destino_id IS NOT NULL
+      AND custo_transferido > 0 AND lucro != 0
+  `).all();
+  for (const v of corrompidas) {
+    const origem = db.prepare('SELECT * FROM produtos WHERE id=?').get(v.produto_id);
+    const destino = db.prepare('SELECT * FROM produtos WHERE id=?').get(v.produto_destino_id);
+    if (origem) {
+      const somaOrigem = investimentosDoProduto(origem.id).reduce((s, i) => s + i.valor, 0);
+      db.prepare('UPDATE produtos SET custo_total=? WHERE id=?').run(somaOrigem, origem.id);
+    }
+    if (destino) {
+      const somaDestino = investimentosDoProduto(destino.id).reduce((s, i) => s + i.valor, 0);
+      db.prepare('UPDATE produtos SET custo_total=? WHERE id=?').run(somaDestino, destino.id);
+    }
+    db.prepare('UPDATE vendas SET lucro=0 WHERE id=?').run(v.id);
+    db.prepare('INSERT INTO produtos_auditoria (produto_id,usuario_id,acao,dados_depois) VALUES (?,?,?,?)')
+      .run(v.produto_id, null, 'corrigido_bug_reversao_troca_no_restart', JSON.stringify({ venda_id: v.id }));
   }
 }
 

@@ -58,6 +58,7 @@
       <button class="aba-btn" data-aba="extrato" onclick="irPara('extrato')">🤝 Extrato Sócios</button>
       <button class="aba-btn" data-aba="lancamentos" onclick="irPara('lancamentos')">💵 Lançamentos</button>
       <button class="aba-btn" data-aba="usuarios" onclick="irPara('usuarios')">👤 Usuários</button>
+      <button class="aba-btn" data-aba="simulador" onclick="irPara('simulador')">🧮 Simulador</button>
     </nav>
     <div class="user-box">
       <span id="user-nome"></span>
@@ -92,6 +93,7 @@
         <button class="mais-item" onclick="irParaEFecharMais('extrato')">🤝 Extrato Sócios</button>
         <button class="mais-item" onclick="irParaEFecharMais('lancamentos')">💵 Lançamentos</button>
         <button class="mais-item" onclick="irParaEFecharMais('usuarios')">👤 Usuários</button>
+        <button class="mais-item" onclick="irParaEFecharMais('simulador')">🧮 Simulador</button>
         <button class="mais-item mais-item-sair" onclick="fazerLogout()">🚪 Sair</button>
       </div>
     </div>
@@ -177,7 +179,7 @@
       <table class="tabela">
         <thead><tr>
           <th>Data</th><th>Produto</th><th>Qtd</th><th>Valor</th><th>Custo</th><th>Lucro</th>
-          <th>Farol</th><th>Canal</th><th>Troca?</th><th></th>
+          <th>Margem</th><th>Canal</th><th>Troca?</th><th></th>
         </tr></thead>
         <tbody id="lista-vendas"></tbody>
       </table>
@@ -246,6 +248,20 @@
         <thead><tr><th>Nome</th><th>Email</th><th>Desde</th><th></th></tr></thead>
         <tbody id="lista-usuarios"></tbody>
       </table>
+    </section>
+
+    <section id="aba-simulador" class="aba oculto">
+      <h2>Simulador de venda</h2>
+      <p class="aviso">Não registra nada — só pra ver quanto dá de lucro e % antes de vender de verdade.</p>
+      <label>Custo do produto (R$)</label>
+      <input id="sim-custo" type="number" step="0.01" oninput="calcularSimulador()">
+      <label class="check-linha">
+        <input type="checkbox" id="sim-eh-troca" onchange="calcularSimulador()">
+        É troca
+      </label>
+      <label id="sim-valor-label">Valor vendido (R$)</label>
+      <input id="sim-valor" type="number" step="0.01" oninput="calcularSimulador()">
+      <div id="sim-resultado" class="cards" style="margin-top:16px"></div>
     </section>
 
   </main>
@@ -344,8 +360,21 @@
       </div>
 
       <div id="venda-destino-box" class="oculto">
-        <label>Produto recebido em troca (opcional — só pra referência, não mexe em custo)</label>
-        <select id="venda-destino"><option value="">— nenhum —</option></select>
+        <label>Produto recebido em troca (opcional — se o dinheiro não cobrir o custo, a diferença vai pro custo desse produto)</label>
+        <select id="venda-destino" onchange="alternarNovoDestino(false)"><option value="">— nenhum —</option></select>
+        <button type="button" class="btn-mini" onclick="alternarNovoDestino(true)">+ Criar produto novo</button>
+        <div id="venda-destino-novo-box" class="oculto" style="margin-top:8px; padding:10px; background:#f7f8fa; border-radius:8px;">
+          <label>Nome do produto recebido</label>
+          <input id="venda-destino-novo-nome" placeholder="Ex: iPhone 11 128GB preto 78%">
+          <label>Categoria</label>
+          <select id="venda-destino-novo-categoria">
+            <option>iPhone</option><option>Android</option><option>TV</option>
+            <option>Acessório</option><option>Console/Videogame</option><option>Outro</option>
+          </select>
+          <p class="aviso">Cria com custo R$0 — o valor que faltar cobrir na troca é somado nele automaticamente ao confirmar a venda. Dá pra completar os outros dados (fotos, IMEI, etc.) depois em Produtos.</p>
+          <p id="venda-destino-novo-erro" class="erro"></p>
+          <button type="button" class="btn-primario btn-mini" onclick="criarDestinoInline()">Criar e selecionar</button>
+        </div>
       </div>
 
       <label>Canal de venda</label>

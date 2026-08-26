@@ -78,7 +78,7 @@ async function irPara(aba) {
   document.querySelectorAll('.aba-btn, .tab-bar-btn').forEach(b => b.classList.toggle('ativa', b.dataset.aba === aba));
   // a barra de baixo (mobile) so tem espaco pra 4 abas + "Mais" — acende o "Mais" quando a aba
   // atual e uma das que ficaram escondidas dentro dele, pra sempre ter algum item aceso.
-  const abasNoMais = ['mensal', 'semanal', 'extrato', 'lancamentos', 'usuarios'];
+  const abasNoMais = ['mensal', 'semanal', 'extrato', 'lancamentos', 'usuarios', 'simulador'];
   $('tab-bar-mais-btn').classList.toggle('ativa', abasNoMais.includes(aba));
   document.querySelectorAll('.aba').forEach(s => s.classList.add('oculto'));
   $('aba-' + aba).classList.remove('oculto');
@@ -97,6 +97,12 @@ async function irPara(aba) {
   if (aba === 'extrato') await carregarExtrato();
   if (aba === 'lancamentos') await carregarLancamentos();
   if (aba === 'usuarios') await carregarUsuarios();
+  if (aba === 'simulador') {
+    $('sim-custo').value = '';
+    $('sim-valor').value = '';
+    $('sim-eh-troca').checked = false;
+    calcularSimulador();
+  }
 }
 
 // ---------- Barra "Mais" (mobile) ----------
@@ -153,8 +159,46 @@ function tagClasseStatus(status) {
 function renderFarol(farol) {
   if (!farol) return '';
   if (farol.tipo === 'troca') return `<span class="farol-troca">Troca</span>`;
-  const label = `${farol.cor === 'verde' ? 'Bom' : farol.cor === 'amarelo' ? 'Médio' : 'Ruim'} (${farol.retorno.toFixed(1)}%)`;
-  return `<span class="farol" title="${label}"><span class="farol-bolinha ${farol.cor}"></span>${label}</span>`;
+  return `<span class="farol"><span class="farol-bolinha ${farol.cor}"></span>${farol.retorno.toFixed(1)}%</span>`;
+}
+
+// ---------- Simulador ----------
+// Mesma conta do backend (calcularVendaComTroca + classificarFarol), só que sem gravar nada — pra
+// ver antes de vender de verdade. Troca sem dinheiro suficiente pra cobrir o custo: lucro fica 0
+// e a diferença "vai" pro produto que entrar na troca, igual funciona pra venda de verdade.
+function calcularSimulador() {
+  const custo = Number($('sim-custo').value) || 0;
+  const valor = Number($('sim-valor').value) || 0;
+  const ehTroca = $('sim-eh-troca').checked;
+  $('sim-valor-label').textContent = ehTroca
+    ? 'Entrou dinheiro junto com a troca? (R$) — opcional, deixe em branco se foi troca direta'
+    : 'Valor vendido (R$)';
+
+  const deficit = custo - valor;
+  let lucro, transferido = 0, farol;
+  if (ehTroca && deficit > 0.01) {
+    lucro = 0;
+    transferido = deficit;
+    farol = { tipo: 'troca' };
+  } else {
+    lucro = valor - custo;
+    if (custo > 0) {
+      const retorno = (lucro / custo) * 100;
+      const cor = retorno >= 50 ? 'verde' : retorno >= 30 ? 'amarelo' : 'vermelho';
+      farol = { tipo: 'cor', cor, retorno };
+    } else {
+      farol = null;
+    }
+  }
+
+  const cards = [
+    ['💰 Lucro projetado', fmt(lucro), lucro >= 0 ? 'pos' : 'neg'],
+  ];
+  $('sim-resultado').innerHTML = cards.map(([l, v, cls]) =>
+    `<div class="card"><div class="label">${l}</div><div class="valor ${cls}">${v}</div></div>`
+  ).join('') +
+  `<div class="card"><div class="label">📈 Margem</div><div class="valor">${farol ? renderFarol(farol) : '—'}</div></div>` +
+  (transferido > 0 ? `<div class="card"><div class="label">↪️ Vai pro custo do produto da troca</div><div class="valor">${fmt(transferido)}</div></div>` : '');
 }
 
 async function carregarProdutos() {
@@ -441,6 +485,9 @@ function abrirModalVenda(id, vendaId) {
   const selDestino = $('venda-destino');
   selDestino.innerHTML = '<option value="">— nenhum —</option>' +
     PRODUTOS_CACHE.filter(x => x.id !== id).map(x => `<option value="${x.id}">${x.sku ? x.sku + ' — ' : ''}${x.nome}</option>`).join('');
+  alternarNovoDestino(false);
+  $('venda-destino-novo-nome').value = '';
+  $('venda-destino-novo-erro').textContent = '';
   alternarTroca();
 
   const venda = vendaId ? PRODUTO_EM_EDICAO_VENDAS.find(v => v.id === vendaId) : null;
@@ -467,6 +514,34 @@ function alternarTroca() {
   $('venda-valor-label').textContent = eh
     ? 'Entrou dinheiro junto com a troca? (R$) — opcional, deixe em branco se foi troca direta'
     : 'Valor vendido (R$)';
+}
+
+// Mostra/esconde o mini-formulario de criar produto novo direto no meio do registro da troca,
+// pra nao precisar sair da tela, ir em Produtos, cadastrar, e voltar. Cria com custo R$0 — o
+// valor que faltar cobrir na troca cai automaticamente nele quando a venda for confirmada (ver
+// calcularVendaComTroca no backend).
+function alternarNovoDestino(mostrar) {
+  $('venda-destino-novo-box').classList.toggle('oculto', !mostrar);
+  if (mostrar) $('venda-destino').value = '';
+}
+
+async function criarDestinoInline() {
+  $('venda-destino-novo-erro').textContent = '';
+  const nome = $('venda-destino-novo-nome').value.trim();
+  if (!nome) { $('venda-destino-novo-erro').textContent = 'Digita o nome do produto recebido.'; return; }
+  try {
+    const novo = await api('POST', '/api/produtos', {
+      nome, categoria: $('venda-destino-novo-categoria').value,
+      quantidade_total: 1, custo_total: 0,
+      data_compra: $('venda-data').value || new Date().toISOString().slice(0, 10),
+      investimentos: []
+    });
+    PRODUTOS_CACHE.push(novo);
+    const selDestino = $('venda-destino');
+    selDestino.insertAdjacentHTML('beforeend', `<option value="${novo.id}">${novo.sku ? novo.sku + ' — ' : ''}${novo.nome}</option>`);
+    selDestino.value = novo.id;
+    alternarNovoDestino(false);
+  } catch (e) { $('venda-destino-novo-erro').textContent = e.message; }
 }
 
 async function salvarVenda() {

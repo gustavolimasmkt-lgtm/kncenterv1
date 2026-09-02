@@ -761,6 +761,12 @@ async function carregarSemanal() {
         <tr><td>Lucro total da semana</td><td style="text-align:right"><strong>${fmt(s.lucro_total)}</strong></td></tr>
         ${s.por_socio.map(p => `<tr><td>${p.socio_nome}</td><td style="text-align:right">${fmt(p.lucro)}</td></tr>`).join('')}
       </table>
+      <div class="filtros" style="margin-top:8px">
+        <label>Meta desta semana por sócio (R$)${s.meta_customizada ? ' — própria' : ' — usando a padrão'}:</label>
+        <input type="number" step="0.01" value="${s.meta_por_socio}" id="meta-semana-${s.semana}" style="width:120px">
+        <button class="btn-mini" onclick="salvarMetaSemanaEspecifica('${s.semana}')">Salvar</button>
+        ${s.meta_customizada ? `<button class="btn-mini" onclick="resetarMetaSemana('${s.semana}')">Usar padrão</button>` : ''}
+      </div>
     </div>
   `).join('') || '<p>Nenhuma venda registrada ainda.</p>';
 }
@@ -770,6 +776,43 @@ async function salvarMetaSemanal() {
     await api('PUT', '/api/config/meta-semanal', { meta_semanal_por_socio: $('meta-semanal-input').value });
     await carregarSemanal();
   } catch (e) { alert(e.message); }
+}
+
+// Segunda-feira da semana de uma data qualquer, no mesmo formato que o backend usa como chave
+// (AAAA-MM-DD) — pra poder definir a meta de uma semana escolhendo qualquer dia dela.
+function segundaDaSemana(dataStr) {
+  const d = new Date(dataStr + 'T12:00:00');
+  const diaSemana = (d.getDay() + 6) % 7; // segunda=0 ... domingo=6
+  d.setDate(d.getDate() - diaSemana);
+  return d.toISOString().slice(0, 10);
+}
+
+async function salvarMetaSemanaEspecifica(semana) {
+  try {
+    const valor = $('meta-semana-' + semana).value;
+    await api('PUT', `/api/config/meta-semanal/${semana}`, { valor_por_socio: valor });
+    await carregarSemanal();
+  } catch (e) { alert(e.message); }
+}
+
+async function resetarMetaSemana(semana) {
+  try {
+    await api('DELETE', `/api/config/meta-semanal/${semana}`);
+    await carregarSemanal();
+  } catch (e) { alert(e.message); }
+}
+
+async function salvarMetaFutura() {
+  $('meta-futura-erro').textContent = '';
+  const data = $('meta-futura-data').value;
+  const valor = $('meta-futura-valor').value;
+  if (!data) { $('meta-futura-erro').textContent = 'Escolhe um dia da semana que você quer definir a meta.'; return; }
+  try {
+    await api('PUT', `/api/config/meta-semanal/${segundaDaSemana(data)}`, { valor_por_socio: valor });
+    $('meta-futura-data').value = '';
+    $('meta-futura-valor').value = '';
+    await carregarSemanal();
+  } catch (e) { $('meta-futura-erro').textContent = e.message; }
 }
 
 // ---------- Extrato sócios ----------

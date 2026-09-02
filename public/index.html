@@ -207,10 +207,18 @@
       <div class="aba-header">
         <h2>Lucro por Semana</h2>
         <div>
-          Meta por sócio/semana: R$ <input id="meta-semanal-input" type="number" step="0.01" style="width:100px">
+          Meta padrão por sócio/semana: R$ <input id="meta-semanal-input" type="number" step="0.01" style="width:100px">
           <button class="btn-primario" onclick="salvarMetaSemanal()">Salvar</button>
         </div>
       </div>
+      <p class="aviso">A meta padrão vale pra toda semana que não tiver uma meta própria — dá pra definir uma diferente em cada semana logo abaixo, inclusive de semanas futuras que ainda não têm venda.</p>
+      <div class="filtros">
+        <label>Definir meta de uma semana futura — escolhe qualquer dia dela:</label>
+        <input type="date" id="meta-futura-data">
+        <input type="number" step="0.01" id="meta-futura-valor" placeholder="Meta por sócio (R$)" style="width:150px">
+        <button class="btn-mini" onclick="salvarMetaFutura()">Definir</button>
+      </div>
+      <p id="meta-futura-erro" class="erro"></p>
       <div id="lista-semanal"></div>
     </section>
 

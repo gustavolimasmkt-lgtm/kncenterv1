@@ -151,6 +151,11 @@ db.exec(`
     chave TEXT PRIMARY KEY,
     valor TEXT
   );
+
+  CREATE TABLE IF NOT EXISTS metas_semanais (
+    semana TEXT PRIMARY KEY,
+    valor_por_socio REAL NOT NULL
+  );
 `);
 
 // migracao leve: colunas novas em bancos que ja existiam antes dessa versao
@@ -1031,6 +1036,22 @@ app.put('/api/config/meta-semanal', (req, res) => {
   ok(res, { meta_semanal_por_socio: v });
 });
 
+// Meta especifica de UMA semana (por socio), que sobrescreve a meta padrao so naquela semana.
+// :semana e a segunda-feira daquela semana, no formato AAAA-MM-DD (mesma chave que o dashboard
+// semanal usa pra agrupar as vendas — ver chaveSemana).
+app.put('/api/config/meta-semanal/:semana', (req, res) => {
+  const v = Number(req.body.valor_por_socio);
+  if (!v || v <= 0) return err(res, 'Valor de meta invalido');
+  db.prepare(`INSERT INTO metas_semanais (semana, valor_por_socio) VALUES (?,?)
+    ON CONFLICT(semana) DO UPDATE SET valor_por_socio=excluded.valor_por_socio`).run(req.params.semana, v);
+  ok(res, { semana: req.params.semana, valor_por_socio: v });
+});
+// Remove a meta especifica dessa semana — volta a usar a meta padrao.
+app.delete('/api/config/meta-semanal/:semana', (req, res) => {
+  db.prepare('DELETE FROM metas_semanais WHERE semana=?').run(req.params.semana);
+  ok(res, { semana: req.params.semana });
+});
+
 // ---------- DASHBOARDS ----------
 function todosProdutosComRetrato() {
   return db.prepare('SELECT * FROM produtos').all().map(retratoProduto);
@@ -1117,6 +1138,9 @@ app.get('/api/dashboard/semanal', (_, res) => {
   const socios = db.prepare('SELECT * FROM socios WHERE ativo=1 ORDER BY nome').all();
   const metaRow = db.prepare("SELECT valor FROM config WHERE chave='meta_semanal_por_socio'").get();
   const metaPorSocio = Number(metaRow ? metaRow.valor : 1000);
+  const metasEspecificas = Object.fromEntries(
+    db.prepare('SELECT semana, valor_por_socio FROM metas_semanais').all().map(m => [m.semana, m.valor_por_socio])
+  );
 
   const semanas = {};
   for (const v of vendas) {
@@ -1140,12 +1164,28 @@ app.get('/api/dashboard/semanal', (_, res) => {
     });
   }
 
-  const lista = Object.entries(semanas).sort((a, b) => a[0].localeCompare(b[0])).map(([chave, s]) => ({
-    semana: chave, inicio: s.inicio, fim: s.fim, lucro_total: s.lucro_total,
-    meta_total: metaPorSocio * (Object.keys(s.por_socio).length || 1),
-    por_socio: Object.values(s.por_socio),
-    meta_atingida: s.lucro_total >= metaPorSocio * (Object.keys(s.por_socio).length || 1)
-  }));
+  // semana com meta propria definida mas ainda sem nenhuma venda (ex: meta da semana que vem,
+  // definida com antecedencia) tambem entra na lista, senao ela nao apareceria pra editar/ver.
+  for (const chave of Object.keys(metasEspecificas)) {
+    if (!semanas[chave]) {
+      const { inicio, fim } = chaveSemana(chave);
+      semanas[chave] = { inicio, fim, lucro_total: 0, por_socio: {} };
+      socios.forEach(s => semanas[chave].por_socio[s.id] = { socio_nome: s.nome, lucro: 0 });
+    }
+  }
+
+  const lista = Object.entries(semanas).sort((a, b) => a[0].localeCompare(b[0])).map(([chave, s]) => {
+    const metaSemana = metasEspecificas[chave] != null ? metasEspecificas[chave] : metaPorSocio;
+    const nSociosSemana = Object.keys(s.por_socio).length || 1;
+    return {
+      semana: chave, inicio: s.inicio, fim: s.fim, lucro_total: s.lucro_total,
+      meta_por_socio: metaSemana,
+      meta_customizada: metasEspecificas[chave] != null,
+      meta_total: metaSemana * nSociosSemana,
+      por_socio: Object.values(s.por_socio),
+      meta_atingida: s.lucro_total >= metaSemana * nSociosSemana
+    };
+  });
 
   ok(res, { meta_semanal_por_socio: metaPorSocio, semanas: lista });
 });

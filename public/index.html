@@ -59,6 +59,7 @@
       <button class="aba-btn" data-aba="lancamentos" onclick="irPara('lancamentos')">💵 Lançamentos</button>
       <button class="aba-btn" data-aba="usuarios" onclick="irPara('usuarios')">👤 Usuários</button>
       <button class="aba-btn" data-aba="simulador" onclick="irPara('simulador')">🧮 Simulador</button>
+      <button class="aba-btn" data-aba="cotacao" onclick="irPara('cotacao')">📱 Cotação</button>
     </nav>
     <div class="user-box">
       <span id="user-nome"></span>
@@ -94,6 +95,7 @@
         <button class="mais-item" onclick="irParaEFecharMais('lancamentos')">💵 Lançamentos</button>
         <button class="mais-item" onclick="irParaEFecharMais('usuarios')">👤 Usuários</button>
         <button class="mais-item" onclick="irParaEFecharMais('simulador')">🧮 Simulador</button>
+        <button class="mais-item" onclick="irParaEFecharMais('cotacao')">📱 Cotação</button>
         <button class="mais-item mais-item-sair" onclick="fazerLogout()">🚪 Sair</button>
       </div>
     </div>
@@ -270,6 +272,37 @@
       <label id="sim-valor-label">Valor vendido (R$)</label>
       <input id="sim-valor" type="number" step="0.01" oninput="calcularSimulador()">
       <div id="sim-resultado" class="cards" style="margin-top:16px"></div>
+    </section>
+
+    <section id="aba-cotacao" class="aba oculto">
+      <h2>Cotação iPhone</h2>
+      <p class="aviso">Escolhe o modelo, marca as avarias do aparelho e veja quanto pagar na troca. Não salva nada — só calcula e copia o texto pro cliente.</p>
+      <div class="grid2">
+        <div class="card">
+          <label>Modelo do aparelho</label>
+          <select id="cotacao-modelo" onchange="renderAvariasCotacao()"><option value="">Selecione o modelo...</option></select>
+          <p id="cotacao-vazio" style="color:#667085;font-size:14px;margin-top:14px;">Selecione um modelo para começar.</p>
+          <div id="cotacao-avarias-wrap" class="oculto" style="margin-top:14px;">
+            <div id="cotacao-avarias"></div>
+          </div>
+        </div>
+        <div>
+          <div class="card">
+            <div class="label">Valor a pagar</div>
+            <div id="cotacao-total" class="cotacao-total">R$ 0,00</div>
+            <div id="cotacao-breakdown" style="margin-top:14px;font-size:14px;"></div>
+            <button id="cotacao-btn-copiar" class="btn-primario oculto" style="margin-top:16px;" onclick="copiarCotacao()">📋 Copiar para mandar ao cliente</button>
+          </div>
+          <div class="card">
+            <div class="label">Regras</div>
+            <ul class="cotacao-regras">
+              <li>Doc de carga: só o técnico da loja diagnostica.</li>
+              <li>Notificação de peça (peça ok, sem troca): descontar o valor da notificação.</li>
+              <li>Notificação + ainda precisa trocar a peça: descontar a troca da peça x 1,5.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
     </section>
 
   </main>

@@ -3,7 +3,9 @@ const $ = (id) => document.getElementById(id);
 const fmt = (n) => (n == null || n === '' ? '—' : 'R$ ' + Number(n).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
 
 // ---------- Cotação iPhone (tabela de modelos/avarias — mesma da calculadora avulsa) ----------
-const COTACAO_MODELOS = [{"name":"iPhone 8 Plus 64GB","base":300,"values":{"leves":100,"moderadas":250,"bateria":100,"tela":200,"traseira":100,"faceid":200,"doc_carga":150,"cam_traseira":300,"notif_camera":0,"notif_bateria":0,"notif_tela":0}},{"name":"iPhone 8 Plus 256GB","base":400,"values":{"leves":100,"moderadas":250,"bateria":100,"tela":200,"traseira":100,"faceid":200,"doc_carga":150,"cam_traseira":300,"notif_camera":0,"notif_bateria":0,"notif_tela":0}},{"name":"iPhone X 64GB","base":300,"values":{"leves":100,"moderadas":250,"bateria":100,"tela":200,"traseira":100,"faceid":200,"doc_carga":150,"cam_traseira":300,"notif_camera":0,"notif_bateria":0,"notif_tela":0}},{"name":"iPhone X 256GB","base":400,"values":{"leves":100,"moderadas":250,"bateria":100,"tela":200,"traseira":100,"faceid":200,"doc_carga":150,"cam_traseira":300,"notif_camera":0,"notif_bateria":0,"notif_tela":0}},{"name":"iPhone XR 64GB","base":400,"values":{"leves":100,"moderadas":250,"bateria":100,"tela":200,"traseira":100,"faceid":200,"doc_carga":150,"cam_traseira":300,"notif_camera":0,"notif_bateria":200,"notif_tela":0}},{"name":"iPhone XR 128GB","base":500,"values":{"leves":100,"moderadas":250,"bateria":100,"tela":200,"traseira":100,"faceid":200,"doc_carga":150,"cam_traseira":300,"notif_camera":0,"notif_bateria":200,"notif_tela":0}},{"name":"iPhone XS 64GB","base":300,"values":{"leves":100,"moderadas":250,"bateria":100,"tela":300,"traseira":100,"faceid":200,"doc_carga":150,"cam_traseira":300,"notif_camera":0,"notif_bateria":200,"notif_tela":0}},{"name":"iPhone XS 256GB","base":400,"values":{"leves":100,"moderadas":250,"bateria":100,"tela":300,"traseira":100,"faceid":200,"doc_carga":150,"cam_traseira":300,"notif_camera":0,"notif_bateria":200,"notif_tela":0}},{"name":"iPhone XS Max 64GB","base":400,"values":{"leves":100,"moderadas":250,"bateria":100,"tela":300,"traseira":100,"faceid":200,"doc_carga":150,"cam_traseira":300,"notif_camera":0,"notif_bateria":200,"notif_tela":0}},{"name":"iPhone XS Max 256GB","base":500,"values":{"leves":100,"moderadas":250,"bateria":100,"tela":300,"traseira":100,"faceid":200,"doc_carga":150,"cam_traseira":300,"notif_camera":0,"notif_bateria":200,"notif_tela":0}},{"name":"iPhone 11 64GB","base":440,"values":{"leves":101,"moderadas":300,"bateria":200,"tela":300,"traseira":114,"faceid":350,"doc_carga":150,"cam_traseira":300,"notif_camera":0,"notif_bateria":200,"notif_tela":300}},{"name":"iPhone 11 128GB","base":640,"values":{"leves":115,"moderadas":300,"bateria":200,"tela":300,"traseira":134,"faceid":350,"doc_carga":150,"cam_traseira":300,"notif_camera":0,"notif_bateria":200,"notif_tela":300}},{"name":"iPhone 11 256GB","base":740,"values":{"leves":122,"moderadas":300,"bateria":200,"tela":300,"traseira":144,"faceid":350,"doc_carga":150,"cam_traseira":300,"notif_camera":0,"notif_bateria":200,"notif_tela":300}},{"name":"iPhone 11 Pro 64GB","base":440,"values":{"leves":101,"moderadas":300,"bateria":200,"tela":350,"traseira":114,"faceid":350,"doc_carga":150,"cam_traseira":400,"notif_camera":0,"notif_bateria":200,"notif_tela":300}},{"name":"iPhone 11 Pro 256GB","base":540,"values":{"leves":108,"moderadas":300,"bateria":200,"tela":350,"traseira":124,"faceid":350,"doc_carga":150,"cam_traseira":400,"notif_camera":0,"notif_bateria":200,"notif_tela":300}},{"name":"iPhone 11 Pro Max 64GB","base":640,"values":{"leves":115,"moderadas":300,"bateria":200,"tela":350,"traseira":134,"faceid":350,"doc_carga":150,"cam_traseira":400,"notif_camera":0,"notif_bateria":200,"notif_tela":300}},{"name":"iPhone 11 Pro Max 256GB","base":740,"values":{"leves":122,"moderadas":300,"bateria":200,"tela":350,"traseira":144,"faceid":350,"doc_carga":150,"cam_traseira":400,"notif_camera":0,"notif_bateria":200,"notif_tela":300}},{"name":"iPhone 12 64GB","base":940,"values":{"leves":136,"moderadas":350,"bateria":200,"tela":350,"traseira":164,"faceid":450,"doc_carga":200,"cam_traseira":400,"notif_camera":296,"notif_bateria":188,"notif_tela":188}},{"name":"iPhone 12 128GB","base":1099,"values":{"leves":147,"moderadas":350,"bateria":200,"tela":350,"traseira":180,"faceid":450,"doc_carga":200,"cam_traseira":500,"notif_camera":376,"notif_bateria":220,"notif_tela":220}},{"name":"iPhone 12 256GB","base":1140,"values":{"leves":150,"moderadas":350,"bateria":200,"tela":350,"traseira":184,"faceid":450,"doc_carga":200,"cam_traseira":500,"notif_camera":440,"notif_bateria":228,"notif_tela":228}},{"name":"iPhone 12 Pro 128GB","base":1240,"values":{"leves":157,"moderadas":350,"bateria":250,"tela":350,"traseira":194,"faceid":450,"doc_carga":200,"cam_traseira":600,"notif_camera":456,"notif_bateria":248,"notif_tela":248}},{"name":"iPhone 12 Pro 256GB","base":1440,"values":{"leves":171,"moderadas":350,"bateria":250,"tela":350,"traseira":214,"faceid":450,"doc_carga":200,"cam_traseira":600,"notif_camera":496,"notif_bateria":288,"notif_tela":288}},{"name":"iPhone 12 Pro Max 128GB","base":1640,"values":{"leves":185,"moderadas":350,"bateria":250,"tela":500,"traseira":234,"faceid":450,"doc_carga":200,"cam_traseira":600,"notif_camera":576,"notif_bateria":328,"notif_tela":328}},{"name":"iPhone 12 Pro Max 256GB","base":1799,"values":{"leves":196,"moderadas":350,"bateria":250,"tela":500,"traseira":250,"faceid":450,"doc_carga":200,"cam_traseira":600,"notif_camera":656,"notif_bateria":360,"notif_tela":360}},{"name":"iPhone 13 128GB","base":1545,"values":{"leves":178,"moderadas":400,"bateria":250,"tela":350,"traseira":225,"faceid":450,"doc_carga":250,"cam_traseira":400,"notif_camera":720,"notif_bateria":309,"notif_tela":309}},{"name":"iPhone 13 256GB","base":1640,"values":{"leves":185,"moderadas":400,"bateria":250,"tela":350,"traseira":234,"faceid":450,"doc_carga":250,"cam_traseira":400,"notif_camera":618,"notif_bateria":328,"notif_tela":328}},{"name":"iPhone 13 Pro 128GB","base":1945,"values":{"leves":206,"moderadas":400,"bateria":250,"tela":400,"traseira":265,"faceid":600,"doc_carga":250,"cam_traseira":650,"notif_camera":656,"notif_bateria":389,"notif_tela":389}},{"name":"iPhone 13 Pro 256GB","base":2095,"values":{"leves":217,"moderadas":400,"bateria":250,"tela":400,"traseira":280,"faceid":600,"doc_carga":250,"cam_traseira":650,"notif_camera":778,"notif_bateria":419,"notif_tela":419}},{"name":"iPhone 13 Pro 512GB","base":2040,"values":{"leves":213,"moderadas":450,"bateria":250,"tela":400,"traseira":274,"faceid":600,"doc_carga":250,"cam_traseira":650,"notif_camera":838,"notif_bateria":408,"notif_tela":408}},{"name":"iPhone 13 Pro Max 128GB","base":2245,"values":{"leves":227,"moderadas":450,"bateria":250,"tela":900,"traseira":295,"faceid":600,"doc_carga":250,"cam_traseira":650,"notif_camera":816,"notif_bateria":449,"notif_tela":449}},{"name":"iPhone 13 Pro Max 256GB","base":2445,"values":{"leves":241,"moderadas":500,"bateria":250,"tela":900,"traseira":315,"faceid":600,"doc_carga":250,"cam_traseira":650,"notif_camera":898,"notif_bateria":489,"notif_tela":489}},{"name":"iPhone 14 128GB","base":1640,"values":{"leves":185,"moderadas":500,"bateria":250,"tela":500,"traseira":234,"faceid":600,"doc_carga":250,"cam_traseira":500,"notif_camera":978,"notif_bateria":328,"notif_tela":328}},{"name":"iPhone 14 256GB","base":1840,"values":{"leves":199,"moderadas":500,"bateria":250,"tela":500,"traseira":254,"faceid":600,"doc_carga":250,"cam_traseira":500,"notif_camera":656,"notif_bateria":368,"notif_tela":368}},{"name":"iPhone 14 512GB","base":2240,"values":{"leves":227,"moderadas":500,"bateria":250,"tela":500,"traseira":294,"faceid":600,"doc_carga":250,"cam_traseira":500,"notif_camera":736,"notif_bateria":448,"notif_tela":448}},{"name":"iPhone 14 Pro 128GB","base":2470,"values":{"leves":243,"moderadas":500,"bateria":350,"tela":700,"traseira":317,"faceid":750,"doc_carga":300,"cam_traseira":950,"notif_camera":896,"notif_bateria":494,"notif_tela":494}},{"name":"iPhone 14 Pro 256GB","base":2670,"values":{"leves":257,"moderadas":500,"bateria":350,"tela":700,"traseira":337,"faceid":750,"doc_carga":300,"cam_traseira":950,"notif_camera":988,"notif_bateria":534,"notif_tela":534}},{"name":"iPhone 14 Pro 512GB","base":2740,"values":{"leves":262,"moderadas":500,"bateria":350,"tela":700,"traseira":344,"faceid":750,"doc_carga":300,"cam_traseira":950,"notif_camera":1068,"notif_bateria":548,"notif_tela":548}},{"name":"iPhone 14 Pro Max 128GB","base":2870,"values":{"leves":271,"moderadas":500,"bateria":350,"tela":1200,"traseira":357,"faceid":750,"doc_carga":300,"cam_traseira":950,"notif_camera":1096,"notif_bateria":574,"notif_tela":574}},{"name":"iPhone 14 Pro Max 256GB","base":3029,"values":{"leves":282,"moderadas":500,"bateria":350,"tela":1200,"traseira":373,"faceid":750,"doc_carga":300,"cam_traseira":950,"notif_camera":1148,"notif_bateria":606,"notif_tela":606}},{"name":"iPhone 14 Pro Max 512GB","base":3040,"values":{"leves":283,"moderadas":500,"bateria":350,"tela":1200,"traseira":374,"faceid":750,"doc_carga":300,"cam_traseira":950,"notif_camera":1212,"notif_bateria":608,"notif_tela":608}},{"name":"iPhone 15 128GB","base":2245,"values":{"leves":227,"moderadas":600,"bateria":350,"tela":700,"traseira":295,"faceid":750,"doc_carga":600,"cam_traseira":600,"notif_camera":1216,"notif_bateria":449,"notif_tela":449}},{"name":"iPhone 15 256GB","base":2395,"values":{"leves":238,"moderadas":600,"bateria":350,"tela":700,"traseira":310,"faceid":750,"doc_carga":600,"cam_traseira":600,"notif_camera":898,"notif_bateria":479,"notif_tela":479}},{"name":"iPhone 15 Pro 128GB","base":2845,"values":{"leves":269,"moderadas":600,"bateria":450,"tela":1400,"traseira":355,"faceid":1000,"doc_carga":600,"cam_traseira":1200,"notif_camera":958,"notif_bateria":569,"notif_tela":569}},{"name":"iPhone 15 Pro 256GB","base":3145,"values":{"leves":290,"moderadas":600,"bateria":450,"tela":1400,"traseira":385,"faceid":1000,"doc_carga":600,"cam_traseira":1200,"notif_camera":1138,"notif_bateria":629,"notif_tela":629}},{"name":"iPhone 15 Pro Max 256GB","base":3745,"values":{"leves":332,"moderadas":600,"bateria":450,"tela":1600,"traseira":445,"faceid":1000,"doc_carga":600,"cam_traseira":1500,"notif_camera":1258,"notif_bateria":749,"notif_tela":749}},{"name":"iPhone 16 128GB","base":3245,"values":{"leves":297,"moderadas":600,"bateria":600,"tela":1400,"traseira":395,"faceid":1000,"doc_carga":800,"cam_traseira":1500,"notif_camera":1498,"notif_bateria":649,"notif_tela":649}},{"name":"iPhone 16 256GB","base":3440,"values":{"leves":311,"moderadas":600,"bateria":600,"tela":1400,"traseira":414,"faceid":1000,"doc_carga":800,"cam_traseira":1500,"notif_camera":1298,"notif_bateria":688,"notif_tela":688}},{"name":"iPhone 16 512GB","base":3540,"values":{"leves":318,"moderadas":600,"bateria":600,"tela":1400,"traseira":424,"faceid":1000,"doc_carga":800,"cam_traseira":1500,"notif_camera":1376,"notif_bateria":708,"notif_tela":708}},{"name":"iPhone 16 Pro 128GB","base":3740,"values":{"leves":332,"moderadas":600,"bateria":800,"tela":1900,"traseira":444,"faceid":1200,"doc_carga":800,"cam_traseira":1900,"notif_camera":1416,"notif_bateria":748,"notif_tela":748}},{"name":"iPhone 16 Pro 256GB","base":4070,"values":{"leves":355,"moderadas":600,"bateria":800,"tela":1900,"traseira":477,"faceid":1200,"doc_carga":800,"cam_traseira":1900,"notif_camera":1496,"notif_bateria":814,"notif_tela":814}},{"name":"iPhone 16 Pro 512GB","base":3840,"values":{"leves":339,"moderadas":600,"bateria":800,"tela":1900,"traseira":454,"faceid":1200,"doc_carga":800,"cam_traseira":1900,"notif_camera":1628,"notif_bateria":768,"notif_tela":768}},{"name":"iPhone 16 Pro 1TB","base":3940,"values":{"leves":346,"moderadas":600,"bateria":800,"tela":1900,"traseira":464,"faceid":1200,"doc_carga":800,"cam_traseira":1900,"notif_camera":1536,"notif_bateria":788,"notif_tela":788}},{"name":"iPhone 16 Pro Max 256GB","base":4540,"values":{"leves":388,"moderadas":600,"bateria":800,"tela":3000,"traseira":524,"faceid":1500,"doc_carga":800,"cam_traseira":1900,"notif_camera":1576,"notif_bateria":908,"notif_tela":908}},{"name":"iPhone 16 Pro Max 512GB","base":4440,"values":{"leves":381,"moderadas":600,"bateria":800,"tela":3000,"traseira":514,"faceid":1500,"doc_carga":800,"cam_traseira":1900,"notif_camera":1816,"notif_bateria":888,"notif_tela":888}},{"name":"iPhone 16 Pro Max 1TB","base":4640,"values":{"leves":395,"moderadas":600,"bateria":800,"tela":3000,"traseira":534,"faceid":1500,"doc_carga":800,"cam_traseira":1900,"notif_camera":1776,"notif_bateria":928,"notif_tela":928}}];
+// A lista de modelos agora vem do banco (/api/cotacao/modelos), editável na aba Preços — não é
+// mais fixa no código. COTACAO_MODELOS_CACHE guarda o que veio da última busca.
+let COTACAO_MODELOS_CACHE = [];
 
 const COTACAO_DAMAGE = [
   ['leves', 'Marcas leves'],
@@ -21,20 +23,21 @@ const COTACAO_DAMAGE = [
 
 let COTACAO_TEXTO_COPIA = '';
 
+async function carregarCotacaoModelos() {
+  COTACAO_MODELOS_CACHE = await api('GET', '/api/cotacao/modelos');
+}
+
 function preencherModelosCotacao() {
   const sel = $('cotacao-modelo');
-  if (sel.options.length > 1) return; // já preenchido, não duplica
-  COTACAO_MODELOS.forEach((m, i) => {
-    const opt = document.createElement('option');
-    opt.value = i;
-    opt.textContent = m.name;
-    sel.appendChild(opt);
-  });
+  const atual = sel.value;
+  sel.innerHTML = '<option value="">Selecione o modelo...</option>' +
+    COTACAO_MODELOS_CACHE.map(m => `<option value="${m.id}">${m.nome}</option>`).join('');
+  sel.value = atual;
 }
 
 function renderAvariasCotacao() {
   const sel = $('cotacao-modelo');
-  const m = COTACAO_MODELOS[sel.value];
+  const m = COTACAO_MODELOS_CACHE.find(x => x.id === Number(sel.value));
   const box = $('cotacao-avarias');
   box.innerHTML = '';
   if (!m) {
@@ -46,7 +49,7 @@ function renderAvariasCotacao() {
   $('cotacao-vazio').classList.add('oculto');
   $('cotacao-avarias-wrap').classList.remove('oculto');
 
-  const valor = (k) => Number((m.values || {})[k] || 0);
+  const valor = (k) => Number(m[k] || 0);
   const comValor = COTACAO_DAMAGE.filter(([k]) => valor(k) > 0);
   const lista = comValor.length ? comValor : COTACAO_DAMAGE;
   lista.forEach(([key, label]) => {
@@ -61,7 +64,7 @@ function renderAvariasCotacao() {
 
 function calcularCotacao() {
   const sel = $('cotacao-modelo');
-  const m = COTACAO_MODELOS[sel.value];
+  const m = COTACAO_MODELOS_CACHE.find(x => x.id === Number(sel.value));
   const totalEl = $('cotacao-total');
   const bd = $('cotacao-breakdown');
   if (!m) {
@@ -74,7 +77,7 @@ function calcularCotacao() {
   const base = Number(m.base || 0);
   let total = base;
   let linhas = [`<div style="display:flex;justify-content:space-between"><span>Valor na troca</span><b>${fmt(base)}</b></div>`];
-  const textoLinhas = [m.name, 'Valor na troca: ' + fmt(base)];
+  const textoLinhas = [m.nome, 'Valor na troca: ' + fmt(base)];
 
   $('cotacao-avarias').querySelectorAll('input[type=checkbox]:checked').forEach((chk) => {
     const v = Number(chk.value);
@@ -112,6 +115,63 @@ function copiarCotacao() {
   };
   if (navigator.clipboard) navigator.clipboard.writeText(COTACAO_TEXTO_COPIA).then(avisar).catch(fallback);
   else fallback();
+}
+
+// ---------- Preços (tabela de modelos da Cotação — editar/adicionar/excluir) ----------
+let PRECOS_CACHE = [];
+
+async function carregarPrecos() {
+  PRECOS_CACHE = await api('GET', '/api/cotacao/modelos');
+  $('lista-precos').innerHTML = PRECOS_CACHE.map(m => `
+    <tr>
+      <td>${m.nome}</td>
+      <td>${fmt(m.base)}</td>
+      <td>
+        <button class="btn-mini" onclick="abrirModalPreco(${m.id})">Editar</button>
+        <button class="btn-mini" onclick="excluirPreco(${m.id})">Excluir</button>
+      </td>
+    </tr>
+  `).join('') || '<tr><td colspan="3">Nenhum modelo cadastrado ainda.</td></tr>';
+}
+
+function abrirModalPreco(id) {
+  const m = id ? PRECOS_CACHE.find(x => x.id === id) : null;
+  $('preco-erro').textContent = '';
+  $('preco-id').value = m ? m.id : '';
+  $('modal-preco-titulo').textContent = m ? 'Editar modelo' : 'Novo modelo';
+  $('preco-nome').value = m ? m.nome : '';
+  $('preco-base').value = m ? m.base : '';
+  COTACAO_DAMAGE.forEach(([key]) => { $('preco-' + key).value = m ? m[key] : 0; });
+  $('btn-excluir-preco').classList.toggle('oculto', !m);
+  $('modal-preco').classList.remove('oculto');
+}
+
+async function salvarPreco() {
+  $('preco-erro').textContent = '';
+  const id = $('preco-id').value;
+  const payload = { nome: $('preco-nome').value, base: $('preco-base').value };
+  COTACAO_DAMAGE.forEach(([key]) => { payload[key] = $('preco-' + key).value; });
+  try {
+    if (id) await api('PUT', `/api/cotacao/modelos/${id}`, payload);
+    else await api('POST', '/api/cotacao/modelos', payload);
+    fecharModal('modal-preco');
+    await carregarPrecos();
+  } catch (e) { $('preco-erro').textContent = e.message; }
+}
+
+async function excluirPreco(id) {
+  if (!confirm('Excluir esse modelo da tabela de preços?')) return;
+  await api('DELETE', `/api/cotacao/modelos/${id}`);
+  await carregarPrecos();
+}
+
+async function excluirPrecoDoModal() {
+  const id = $('preco-id').value;
+  if (!id) return;
+  if (!confirm('Excluir esse modelo da tabela de preços?')) return;
+  await api('DELETE', `/api/cotacao/modelos/${id}`);
+  fecharModal('modal-preco');
+  await carregarPrecos();
 }
 
 async function api(metodo, url, body) {
@@ -190,7 +250,7 @@ async function irPara(aba) {
   document.querySelectorAll('.aba-btn, .tab-bar-btn').forEach(b => b.classList.toggle('ativa', b.dataset.aba === aba));
   // a barra de baixo (mobile) so tem espaco pra 4 abas + "Mais" — acende o "Mais" quando a aba
   // atual e uma das que ficaram escondidas dentro dele, pra sempre ter algum item aceso.
-  const abasNoMais = ['mensal', 'semanal', 'extrato', 'lancamentos', 'usuarios', 'simulador', 'cotacao'];
+  const abasNoMais = ['mensal', 'semanal', 'extrato', 'lancamentos', 'usuarios', 'simulador', 'cotacao', 'precos'];
   $('tab-bar-mais-btn').classList.toggle('ativa', abasNoMais.includes(aba));
   document.querySelectorAll('.aba').forEach(s => s.classList.add('oculto'));
   $('aba-' + aba).classList.remove('oculto');
@@ -216,10 +276,12 @@ async function irPara(aba) {
     calcularSimulador();
   }
   if (aba === 'cotacao') {
+    await carregarCotacaoModelos();
     preencherModelosCotacao();
     $('cotacao-modelo').value = '';
     renderAvariasCotacao();
   }
+  if (aba === 'precos') await carregarPrecos();
 }
 
 // ---------- Barra "Mais" (mobile) ----------

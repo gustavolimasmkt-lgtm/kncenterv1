@@ -60,6 +60,7 @@
       <button class="aba-btn" data-aba="usuarios" onclick="irPara('usuarios')">👤 Usuários</button>
       <button class="aba-btn" data-aba="simulador" onclick="irPara('simulador')">🧮 Simulador</button>
       <button class="aba-btn" data-aba="cotacao" onclick="irPara('cotacao')">📱 Cotação</button>
+      <button class="aba-btn" data-aba="precos" onclick="irPara('precos')">💲 Preços</button>
     </nav>
     <div class="user-box">
       <span id="user-nome"></span>
@@ -96,6 +97,7 @@
         <button class="mais-item" onclick="irParaEFecharMais('usuarios')">👤 Usuários</button>
         <button class="mais-item" onclick="irParaEFecharMais('simulador')">🧮 Simulador</button>
         <button class="mais-item" onclick="irParaEFecharMais('cotacao')">📱 Cotação</button>
+        <button class="mais-item" onclick="irParaEFecharMais('precos')">💲 Preços</button>
         <button class="mais-item mais-item-sair" onclick="fazerLogout()">🚪 Sair</button>
       </div>
     </div>
@@ -305,6 +307,18 @@
       </div>
     </section>
 
+    <section id="aba-precos" class="aba oculto">
+      <div class="aba-header">
+        <h2>Preços — Cotação iPhone</h2>
+        <button class="btn-primario" onclick="abrirModalPreco()">+ Novo modelo</button>
+      </div>
+      <p class="aviso">Valores usados na aba Cotação. "Na troca" é o valor base do modelo; o resto das avarias fica dentro de "Editar".</p>
+      <table class="tabela">
+        <thead><tr><th>Modelo</th><th>Na troca</th><th></th></tr></thead>
+        <tbody id="lista-precos"></tbody>
+      </table>
+    </section>
+
   </main>
 </div>
 
@@ -447,6 +461,47 @@
       <input id="lanc-data" type="date">
       <p id="lanc-erro" class="erro"></p>
       <div class="modal-acoes"><button class="btn-primario" onclick="salvarLancamento()">Salvar</button></div>
+    </div>
+  </div>
+</div>
+
+<div id="modal-preco" class="modal oculto">
+  <div class="modal-conteudo">
+    <div class="modal-header"><h3 id="modal-preco-titulo">Novo modelo</h3><span class="fechar" onclick="fecharModal('modal-preco')">&times;</span></div>
+    <div class="modal-body">
+      <input type="hidden" id="preco-id">
+      <label>Nome do modelo</label>
+      <input id="preco-nome" placeholder="Ex: iPhone 17 Pro 256GB">
+      <label>Valor na troca (R$)</label>
+      <input id="preco-base" type="number" step="0.01">
+      <p class="aviso" style="margin-top:10px;">Quanto desconta de cada avaria (R$) — deixa 0 pra avaria que não existe nesse modelo.</p>
+      <label>Marcas leves</label>
+      <input id="preco-leves" type="number" step="0.01">
+      <label>Marcas moderadas</label>
+      <input id="preco-moderadas" type="number" step="0.01">
+      <label>Bateria (saúde baixa)</label>
+      <input id="preco-bateria" type="number" step="0.01">
+      <label>Troca de tela</label>
+      <input id="preco-tela" type="number" step="0.01">
+      <label>Traseira</label>
+      <input id="preco-traseira" type="number" step="0.01">
+      <label>Face ID</label>
+      <input id="preco-faceid" type="number" step="0.01">
+      <label>Doc de carga</label>
+      <input id="preco-doc_carga" type="number" step="0.01">
+      <label>Câmera traseira</label>
+      <input id="preco-cam_traseira" type="number" step="0.01">
+      <label>Notif. peça - câmera</label>
+      <input id="preco-notif_camera" type="number" step="0.01">
+      <label>Notif. peça - bateria</label>
+      <input id="preco-notif_bateria" type="number" step="0.01">
+      <label>Notif. peça - tela</label>
+      <input id="preco-notif_tela" type="number" step="0.01">
+      <p id="preco-erro" class="erro"></p>
+      <div class="modal-acoes">
+        <button class="btn-primario" onclick="salvarPreco()">Salvar</button>
+        <button id="btn-excluir-preco" class="btn-perigo oculto" onclick="excluirPrecoDoModal()">Excluir modelo</button>
+      </div>
     </div>
   </div>
 </div>

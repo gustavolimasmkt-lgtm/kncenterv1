@@ -156,6 +156,24 @@ db.exec(`
     semana TEXT PRIMARY KEY,
     valor_por_socio REAL NOT NULL
   );
+
+  CREATE TABLE IF NOT EXISTS cotacao_modelos (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    nome TEXT NOT NULL,
+    base REAL NOT NULL DEFAULT 0,
+    leves REAL NOT NULL DEFAULT 0,
+    moderadas REAL NOT NULL DEFAULT 0,
+    bateria REAL NOT NULL DEFAULT 0,
+    tela REAL NOT NULL DEFAULT 0,
+    traseira REAL NOT NULL DEFAULT 0,
+    faceid REAL NOT NULL DEFAULT 0,
+    doc_carga REAL NOT NULL DEFAULT 0,
+    cam_traseira REAL NOT NULL DEFAULT 0,
+    notif_camera REAL NOT NULL DEFAULT 0,
+    notif_bateria REAL NOT NULL DEFAULT 0,
+    notif_tela REAL NOT NULL DEFAULT 0,
+    sort_order INTEGER NOT NULL DEFAULT 0
+  );
 `);
 
 // migracao leve: colunas novas em bancos que ja existiam antes dessa versao
@@ -205,6 +223,17 @@ if (db.prepare('SELECT COUNT(*) as n FROM socios').get().n === 0) {
 }
 if (!db.prepare("SELECT valor FROM config WHERE chave='meta_semanal_por_socio'").get()) {
   db.prepare("INSERT INTO config (chave, valor) VALUES ('meta_semanal_por_socio', '1000')").run();
+}
+
+// seed: tabela de precos da Cotacao iPhone (mesmos 55 modelos da calculadora avulsa) — so na
+// primeira vez, se a tabela estiver vazia. Depois disso e tudo editavel pela aba Precos.
+if (db.prepare('SELECT COUNT(*) as n FROM cotacao_modelos').get().n === 0) {
+  const seedCotacao = [{"nome":"iPhone 8 Plus 64GB","base":300,"leves":100,"moderadas":250,"bateria":100,"tela":200,"traseira":100,"faceid":200,"doc_carga":150,"cam_traseira":300,"notif_camera":0,"notif_bateria":0,"notif_tela":0,"sort_order":0},{"nome":"iPhone 8 Plus 256GB","base":400,"leves":100,"moderadas":250,"bateria":100,"tela":200,"traseira":100,"faceid":200,"doc_carga":150,"cam_traseira":300,"notif_camera":0,"notif_bateria":0,"notif_tela":0,"sort_order":1},{"nome":"iPhone X 64GB","base":300,"leves":100,"moderadas":250,"bateria":100,"tela":200,"traseira":100,"faceid":200,"doc_carga":150,"cam_traseira":300,"notif_camera":0,"notif_bateria":0,"notif_tela":0,"sort_order":2},{"nome":"iPhone X 256GB","base":400,"leves":100,"moderadas":250,"bateria":100,"tela":200,"traseira":100,"faceid":200,"doc_carga":150,"cam_traseira":300,"notif_camera":0,"notif_bateria":0,"notif_tela":0,"sort_order":3},{"nome":"iPhone XR 64GB","base":400,"leves":100,"moderadas":250,"bateria":100,"tela":200,"traseira":100,"faceid":200,"doc_carga":150,"cam_traseira":300,"notif_camera":0,"notif_bateria":200,"notif_tela":0,"sort_order":4},{"nome":"iPhone XR 128GB","base":500,"leves":100,"moderadas":250,"bateria":100,"tela":200,"traseira":100,"faceid":200,"doc_carga":150,"cam_traseira":300,"notif_camera":0,"notif_bateria":200,"notif_tela":0,"sort_order":5},{"nome":"iPhone XS 64GB","base":300,"leves":100,"moderadas":250,"bateria":100,"tela":300,"traseira":100,"faceid":200,"doc_carga":150,"cam_traseira":300,"notif_camera":0,"notif_bateria":200,"notif_tela":0,"sort_order":6},{"nome":"iPhone XS 256GB","base":400,"leves":100,"moderadas":250,"bateria":100,"tela":300,"traseira":100,"faceid":200,"doc_carga":150,"cam_traseira":300,"notif_camera":0,"notif_bateria":200,"notif_tela":0,"sort_order":7},{"nome":"iPhone XS Max 64GB","base":400,"leves":100,"moderadas":250,"bateria":100,"tela":300,"traseira":100,"faceid":200,"doc_carga":150,"cam_traseira":300,"notif_camera":0,"notif_bateria":200,"notif_tela":0,"sort_order":8},{"nome":"iPhone XS Max 256GB","base":500,"leves":100,"moderadas":250,"bateria":100,"tela":300,"traseira":100,"faceid":200,"doc_carga":150,"cam_traseira":300,"notif_camera":0,"notif_bateria":200,"notif_tela":0,"sort_order":9},{"nome":"iPhone 11 64GB","base":440,"leves":101,"moderadas":300,"bateria":200,"tela":300,"traseira":114,"faceid":350,"doc_carga":150,"cam_traseira":300,"notif_camera":0,"notif_bateria":200,"notif_tela":300,"sort_order":10},{"nome":"iPhone 11 128GB","base":640,"leves":115,"moderadas":300,"bateria":200,"tela":300,"traseira":134,"faceid":350,"doc_carga":150,"cam_traseira":300,"notif_camera":0,"notif_bateria":200,"notif_tela":300,"sort_order":11},{"nome":"iPhone 11 256GB","base":740,"leves":122,"moderadas":300,"bateria":200,"tela":300,"traseira":144,"faceid":350,"doc_carga":150,"cam_traseira":300,"notif_camera":0,"notif_bateria":200,"notif_tela":300,"sort_order":12},{"nome":"iPhone 11 Pro 64GB","base":440,"leves":101,"moderadas":300,"bateria":200,"tela":350,"traseira":114,"faceid":350,"doc_carga":150,"cam_traseira":400,"notif_camera":0,"notif_bateria":200,"notif_tela":300,"sort_order":13},{"nome":"iPhone 11 Pro 256GB","base":540,"leves":108,"moderadas":300,"bateria":200,"tela":350,"traseira":124,"faceid":350,"doc_carga":150,"cam_traseira":400,"notif_camera":0,"notif_bateria":200,"notif_tela":300,"sort_order":14},{"nome":"iPhone 11 Pro Max 64GB","base":640,"leves":115,"moderadas":300,"bateria":200,"tela":350,"traseira":134,"faceid":350,"doc_carga":150,"cam_traseira":400,"notif_camera":0,"notif_bateria":200,"notif_tela":300,"sort_order":15},{"nome":"iPhone 11 Pro Max 256GB","base":740,"leves":122,"moderadas":300,"bateria":200,"tela":350,"traseira":144,"faceid":350,"doc_carga":150,"cam_traseira":400,"notif_camera":0,"notif_bateria":200,"notif_tela":300,"sort_order":16},{"nome":"iPhone 12 64GB","base":940,"leves":136,"moderadas":350,"bateria":200,"tela":350,"traseira":164,"faceid":450,"doc_carga":200,"cam_traseira":400,"notif_camera":296,"notif_bateria":188,"notif_tela":188,"sort_order":17},{"nome":"iPhone 12 128GB","base":1099,"leves":147,"moderadas":350,"bateria":200,"tela":350,"traseira":180,"faceid":450,"doc_carga":200,"cam_traseira":500,"notif_camera":376,"notif_bateria":220,"notif_tela":220,"sort_order":18},{"nome":"iPhone 12 256GB","base":1140,"leves":150,"moderadas":350,"bateria":200,"tela":350,"traseira":184,"faceid":450,"doc_carga":200,"cam_traseira":500,"notif_camera":440,"notif_bateria":228,"notif_tela":228,"sort_order":19},{"nome":"iPhone 12 Pro 128GB","base":1240,"leves":157,"moderadas":350,"bateria":250,"tela":350,"traseira":194,"faceid":450,"doc_carga":200,"cam_traseira":600,"notif_camera":456,"notif_bateria":248,"notif_tela":248,"sort_order":20},{"nome":"iPhone 12 Pro 256GB","base":1440,"leves":171,"moderadas":350,"bateria":250,"tela":350,"traseira":214,"faceid":450,"doc_carga":200,"cam_traseira":600,"notif_camera":496,"notif_bateria":288,"notif_tela":288,"sort_order":21},{"nome":"iPhone 12 Pro Max 128GB","base":1640,"leves":185,"moderadas":350,"bateria":250,"tela":500,"traseira":234,"faceid":450,"doc_carga":200,"cam_traseira":600,"notif_camera":576,"notif_bateria":328,"notif_tela":328,"sort_order":22},{"nome":"iPhone 12 Pro Max 256GB","base":1799,"leves":196,"moderadas":350,"bateria":250,"tela":500,"traseira":250,"faceid":450,"doc_carga":200,"cam_traseira":600,"notif_camera":656,"notif_bateria":360,"notif_tela":360,"sort_order":23},{"nome":"iPhone 13 128GB","base":1545,"leves":178,"moderadas":400,"bateria":250,"tela":350,"traseira":225,"faceid":450,"doc_carga":250,"cam_traseira":400,"notif_camera":720,"notif_bateria":309,"notif_tela":309,"sort_order":24},{"nome":"iPhone 13 256GB","base":1640,"leves":185,"moderadas":400,"bateria":250,"tela":350,"traseira":234,"faceid":450,"doc_carga":250,"cam_traseira":400,"notif_camera":618,"notif_bateria":328,"notif_tela":328,"sort_order":25},{"nome":"iPhone 13 Pro 128GB","base":1945,"leves":206,"moderadas":400,"bateria":250,"tela":400,"traseira":265,"faceid":600,"doc_carga":250,"cam_traseira":650,"notif_camera":656,"notif_bateria":389,"notif_tela":389,"sort_order":26},{"nome":"iPhone 13 Pro 256GB","base":2095,"leves":217,"moderadas":400,"bateria":250,"tela":400,"traseira":280,"faceid":600,"doc_carga":250,"cam_traseira":650,"notif_camera":778,"notif_bateria":419,"notif_tela":419,"sort_order":27},{"nome":"iPhone 13 Pro 512GB","base":2040,"leves":213,"moderadas":450,"bateria":250,"tela":400,"traseira":274,"faceid":600,"doc_carga":250,"cam_traseira":650,"notif_camera":838,"notif_bateria":408,"notif_tela":408,"sort_order":28},{"nome":"iPhone 13 Pro Max 128GB","base":2245,"leves":227,"moderadas":450,"bateria":250,"tela":900,"traseira":295,"faceid":600,"doc_carga":250,"cam_traseira":650,"notif_camera":816,"notif_bateria":449,"notif_tela":449,"sort_order":29},{"nome":"iPhone 13 Pro Max 256GB","base":2445,"leves":241,"moderadas":500,"bateria":250,"tela":900,"traseira":315,"faceid":600,"doc_carga":250,"cam_traseira":650,"notif_camera":898,"notif_bateria":489,"notif_tela":489,"sort_order":30},{"nome":"iPhone 14 128GB","base":1640,"leves":185,"moderadas":500,"bateria":250,"tela":500,"traseira":234,"faceid":600,"doc_carga":250,"cam_traseira":500,"notif_camera":978,"notif_bateria":328,"notif_tela":328,"sort_order":31},{"nome":"iPhone 14 256GB","base":1840,"leves":199,"moderadas":500,"bateria":250,"tela":500,"traseira":254,"faceid":600,"doc_carga":250,"cam_traseira":500,"notif_camera":656,"notif_bateria":368,"notif_tela":368,"sort_order":32},{"nome":"iPhone 14 512GB","base":2240,"leves":227,"moderadas":500,"bateria":250,"tela":500,"traseira":294,"faceid":600,"doc_carga":250,"cam_traseira":500,"notif_camera":736,"notif_bateria":448,"notif_tela":448,"sort_order":33},{"nome":"iPhone 14 Pro 128GB","base":2470,"leves":243,"moderadas":500,"bateria":350,"tela":700,"traseira":317,"faceid":750,"doc_carga":300,"cam_traseira":950,"notif_camera":896,"notif_bateria":494,"notif_tela":494,"sort_order":34},{"nome":"iPhone 14 Pro 256GB","base":2670,"leves":257,"moderadas":500,"bateria":350,"tela":700,"traseira":337,"faceid":750,"doc_carga":300,"cam_traseira":950,"notif_camera":988,"notif_bateria":534,"notif_tela":534,"sort_order":35},{"nome":"iPhone 14 Pro 512GB","base":2740,"leves":262,"moderadas":500,"bateria":350,"tela":700,"traseira":344,"faceid":750,"doc_carga":300,"cam_traseira":950,"notif_camera":1068,"notif_bateria":548,"notif_tela":548,"sort_order":36},{"nome":"iPhone 14 Pro Max 128GB","base":2870,"leves":271,"moderadas":500,"bateria":350,"tela":1200,"traseira":357,"faceid":750,"doc_carga":300,"cam_traseira":950,"notif_camera":1096,"notif_bateria":574,"notif_tela":574,"sort_order":37},{"nome":"iPhone 14 Pro Max 256GB","base":3029,"leves":282,"moderadas":500,"bateria":350,"tela":1200,"traseira":373,"faceid":750,"doc_carga":300,"cam_traseira":950,"notif_camera":1148,"notif_bateria":606,"notif_tela":606,"sort_order":38},{"nome":"iPhone 14 Pro Max 512GB","base":3040,"leves":283,"moderadas":500,"bateria":350,"tela":1200,"traseira":374,"faceid":750,"doc_carga":300,"cam_traseira":950,"notif_camera":1212,"notif_bateria":608,"notif_tela":608,"sort_order":39},{"nome":"iPhone 15 128GB","base":2245,"leves":227,"moderadas":600,"bateria":350,"tela":700,"traseira":295,"faceid":750,"doc_carga":600,"cam_traseira":600,"notif_camera":1216,"notif_bateria":449,"notif_tela":449,"sort_order":40},{"nome":"iPhone 15 256GB","base":2395,"leves":238,"moderadas":600,"bateria":350,"tela":700,"traseira":310,"faceid":750,"doc_carga":600,"cam_traseira":600,"notif_camera":898,"notif_bateria":479,"notif_tela":479,"sort_order":41},{"nome":"iPhone 15 Pro 128GB","base":2845,"leves":269,"moderadas":600,"bateria":450,"tela":1400,"traseira":355,"faceid":1000,"doc_carga":600,"cam_traseira":1200,"notif_camera":958,"notif_bateria":569,"notif_tela":569,"sort_order":42},{"nome":"iPhone 15 Pro 256GB","base":3145,"leves":290,"moderadas":600,"bateria":450,"tela":1400,"traseira":385,"faceid":1000,"doc_carga":600,"cam_traseira":1200,"notif_camera":1138,"notif_bateria":629,"notif_tela":629,"sort_order":43},{"nome":"iPhone 15 Pro Max 256GB","base":3745,"leves":332,"moderadas":600,"bateria":450,"tela":1600,"traseira":445,"faceid":1000,"doc_carga":600,"cam_traseira":1500,"notif_camera":1258,"notif_bateria":749,"notif_tela":749,"sort_order":44},{"nome":"iPhone 16 128GB","base":3245,"leves":297,"moderadas":600,"bateria":600,"tela":1400,"traseira":395,"faceid":1000,"doc_carga":800,"cam_traseira":1500,"notif_camera":1498,"notif_bateria":649,"notif_tela":649,"sort_order":45},{"nome":"iPhone 16 256GB","base":3440,"leves":311,"moderadas":600,"bateria":600,"tela":1400,"traseira":414,"faceid":1000,"doc_carga":800,"cam_traseira":1500,"notif_camera":1298,"notif_bateria":688,"notif_tela":688,"sort_order":46},{"nome":"iPhone 16 512GB","base":3540,"leves":318,"moderadas":600,"bateria":600,"tela":1400,"traseira":424,"faceid":1000,"doc_carga":800,"cam_traseira":1500,"notif_camera":1376,"notif_bateria":708,"notif_tela":708,"sort_order":47},{"nome":"iPhone 16 Pro 128GB","base":3740,"leves":332,"moderadas":600,"bateria":800,"tela":1900,"traseira":444,"faceid":1200,"doc_carga":800,"cam_traseira":1900,"notif_camera":1416,"notif_bateria":748,"notif_tela":748,"sort_order":48},{"nome":"iPhone 16 Pro 256GB","base":4070,"leves":355,"moderadas":600,"bateria":800,"tela":1900,"traseira":477,"faceid":1200,"doc_carga":800,"cam_traseira":1900,"notif_camera":1496,"notif_bateria":814,"notif_tela":814,"sort_order":49},{"nome":"iPhone 16 Pro 512GB","base":3840,"leves":339,"moderadas":600,"bateria":800,"tela":1900,"traseira":454,"faceid":1200,"doc_carga":800,"cam_traseira":1900,"notif_camera":1628,"notif_bateria":768,"notif_tela":768,"sort_order":50},{"nome":"iPhone 16 Pro 1TB","base":3940,"leves":346,"moderadas":600,"bateria":800,"tela":1900,"traseira":464,"faceid":1200,"doc_carga":800,"cam_traseira":1900,"notif_camera":1536,"notif_bateria":788,"notif_tela":788,"sort_order":51},{"nome":"iPhone 16 Pro Max 256GB","base":4540,"leves":388,"moderadas":600,"bateria":800,"tela":3000,"traseira":524,"faceid":1500,"doc_carga":800,"cam_traseira":1900,"notif_camera":1576,"notif_bateria":908,"notif_tela":908,"sort_order":52},{"nome":"iPhone 16 Pro Max 512GB","base":4440,"leves":381,"moderadas":600,"bateria":800,"tela":3000,"traseira":514,"faceid":1500,"doc_carga":800,"cam_traseira":1900,"notif_camera":1816,"notif_bateria":888,"notif_tela":888,"sort_order":53},{"nome":"iPhone 16 Pro Max 1TB","base":4640,"leves":395,"moderadas":600,"bateria":800,"tela":3000,"traseira":534,"faceid":1500,"doc_carga":800,"cam_traseira":1900,"notif_camera":1776,"notif_bateria":928,"notif_tela":928,"sort_order":54}];
+  const insCotacao = db.prepare(`INSERT INTO cotacao_modelos
+    (nome,base,leves,moderadas,bateria,tela,traseira,faceid,doc_carga,cam_traseira,notif_camera,notif_bateria,notif_tela,sort_order)
+    VALUES (@nome,@base,@leves,@moderadas,@bateria,@tela,@traseira,@faceid,@doc_carga,@cam_traseira,@notif_camera,@notif_bateria,@notif_tela,@sort_order)`);
+  const txCotacao = db.transaction((linhas) => linhas.forEach((l) => insCotacao.run(l)));
+  txCotacao(seedCotacao);
 }
 
 // NOVO modelo de troca (pedido do dono): quando a troca nao tem dinheiro suficiente pra cobrir o
@@ -1021,6 +1050,49 @@ app.delete('/api/lancamentos/:id', (req, res) => {
   const item = db.prepare('SELECT * FROM lancamentos WHERE id=?').get(req.params.id);
   if (!item) return err(res, 'Lancamento nao encontrado', 404);
   db.prepare('DELETE FROM lancamentos WHERE id=?').run(req.params.id);
+  ok(res, { id: req.params.id });
+});
+
+// ---------- COTACAO IPHONE (tabela de precos editavel por modelo) ----------
+const COTACAO_CAMPOS = ['nome', 'base', 'leves', 'moderadas', 'bateria', 'tela', 'traseira',
+  'faceid', 'doc_carga', 'cam_traseira', 'notif_camera', 'notif_bateria', 'notif_tela'];
+
+app.get('/api/cotacao/modelos', (_, res) => {
+  ok(res, db.prepare('SELECT * FROM cotacao_modelos ORDER BY sort_order, id').all());
+});
+
+app.post('/api/cotacao/modelos', (req, res) => {
+  const b = req.body;
+  if (!b.nome || !b.nome.trim()) return err(res, 'Nome do modelo obrigatorio');
+  const maxOrder = db.prepare('SELECT COALESCE(MAX(sort_order), -1) as o FROM cotacao_modelos').get().o;
+  const valores = { nome: b.nome.trim(), sort_order: maxOrder + 1 };
+  COTACAO_CAMPOS.slice(1).forEach(c => valores[c] = Number(b[c]) || 0);
+  const r = db.prepare(`INSERT INTO cotacao_modelos
+    (nome,base,leves,moderadas,bateria,tela,traseira,faceid,doc_carga,cam_traseira,notif_camera,notif_bateria,notif_tela,sort_order)
+    VALUES (@nome,@base,@leves,@moderadas,@bateria,@tela,@traseira,@faceid,@doc_carga,@cam_traseira,@notif_camera,@notif_bateria,@notif_tela,@sort_order)`)
+    .run(valores);
+  ok(res, db.prepare('SELECT * FROM cotacao_modelos WHERE id=?').get(r.lastInsertRowid));
+});
+
+app.put('/api/cotacao/modelos/:id', (req, res) => {
+  const modelo = db.prepare('SELECT id FROM cotacao_modelos WHERE id=?').get(req.params.id);
+  if (!modelo) return err(res, 'Modelo nao encontrado', 404);
+  const b = req.body;
+  if (!b.nome || !b.nome.trim()) return err(res, 'Nome do modelo obrigatorio');
+  const valores = { nome: b.nome.trim(), id: req.params.id };
+  COTACAO_CAMPOS.slice(1).forEach(c => valores[c] = Number(b[c]) || 0);
+  db.prepare(`UPDATE cotacao_modelos SET
+    nome=@nome, base=@base, leves=@leves, moderadas=@moderadas, bateria=@bateria, tela=@tela,
+    traseira=@traseira, faceid=@faceid, doc_carga=@doc_carga, cam_traseira=@cam_traseira,
+    notif_camera=@notif_camera, notif_bateria=@notif_bateria, notif_tela=@notif_tela
+    WHERE id=@id`).run(valores);
+  ok(res, db.prepare('SELECT * FROM cotacao_modelos WHERE id=?').get(req.params.id));
+});
+
+app.delete('/api/cotacao/modelos/:id', (req, res) => {
+  const modelo = db.prepare('SELECT id FROM cotacao_modelos WHERE id=?').get(req.params.id);
+  if (!modelo) return err(res, 'Modelo nao encontrado', 404);
+  db.prepare('DELETE FROM cotacao_modelos WHERE id=?').run(req.params.id);
   ok(res, { id: req.params.id });
 });
 

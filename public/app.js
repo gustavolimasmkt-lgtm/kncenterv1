@@ -165,6 +165,14 @@ async function excluirPreco(id) {
   await carregarPrecos();
 }
 
+// ---------- Catálogo público (link pra mandar pro cliente, sem precisar logar) ----------
+function copiarLinkCatalogo() {
+  const link = window.location.origin + '/catalogo';
+  const avisar = () => alert('Link copiado:\n' + link);
+  if (navigator.clipboard) navigator.clipboard.writeText(link).then(avisar).catch(() => prompt('Copia esse link:', link));
+  else prompt('Copia esse link:', link);
+}
+
 async function excluirPrecoDoModal() {
   const id = $('preco-id').value;
   if (!id) return;

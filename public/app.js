@@ -558,6 +558,8 @@ async function abrirModalProduto(id) {
     $('prod-categoria').value = p.categoria;
     $('prod-sku').value = p.sku;
     $('prod-condicao').value = p.condicao || '';
+    $('prod-bateria-pct').value = p.bateria_pct ?? '';
+    $('prod-tudo-original').checked = !!p.tudo_original;
     $('prod-imei').value = p.imei_serial || '';
     $('prod-qtd').value = p.quantidade_total;
     $('prod-data-compra').value = p.data_compra || '';
@@ -597,7 +599,8 @@ async function abrirModalProduto(id) {
   } else {
     PRODUTO_EM_EDICAO_VENDAS = [];
     $('modal-produto-titulo').textContent = 'Novo produto';
-    ['prod-nome','prod-sku','prod-condicao','prod-imei','prod-preco-anuncio','prod-lucro-minimo','prod-status-manual','prod-obs'].forEach(f => $(f).value = '');
+    ['prod-nome','prod-sku','prod-condicao','prod-bateria-pct','prod-imei','prod-preco-anuncio','prod-lucro-minimo','prod-status-manual','prod-obs'].forEach(f => $(f).value = '');
+    $('prod-tudo-original').checked = false;
     $('prod-qtd').value = 1;
     $('prod-custo').value = '';
     $('prod-data-compra').value = new Date().toISOString().slice(0, 10);
@@ -648,6 +651,8 @@ async function salvarProduto() {
     categoria: $('prod-categoria').value,
     sku: $('prod-sku').value,
     condicao: $('prod-condicao').value,
+    bateria_pct: $('prod-bateria-pct').value || null,
+    tudo_original: $('prod-tudo-original').checked,
     imei_serial: $('prod-imei').value,
     quantidade_total: $('prod-qtd').value,
     data_compra: $('prod-data-compra').value,

@@ -380,6 +380,14 @@
       <label>Observações</label>
       <textarea id="prod-obs"></textarea>
 
+      <div id="prod-fotos-box" class="oculto">
+        <label>Fotos do produto</label>
+        <div id="grid-fotos-produto" class="grid-fotos"></div>
+        <input type="file" id="prod-fotos-input" accept="image/*" multiple>
+        <button type="button" class="btn-mini" onclick="enviarFotosProduto()">📷 Enviar fotos</button>
+        <p id="prod-fotos-erro" class="erro"></p>
+      </div>
+
       <div id="prod-vendas-box" class="oculto">
         <label>Vendas registradas</label>
         <table class="mini-tabela mini-tabela-vendas">

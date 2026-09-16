@@ -161,7 +161,30 @@
     color: var(--muted);
     font-size: 13px;
   }
+  .selo-original {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 10.5px;
+    font-weight: 700;
+    letter-spacing: .02em;
+    color: #fff;
+    background: linear-gradient(135deg, var(--azul), #34a1ff);
+    padding: 5px 10px;
+    border-radius: 20px;
+    box-shadow: 0 4px 12px var(--azul-glow);
+  }
   .info { padding: 16px 16px 18px; }
+  .topo-info {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin: 0 0 8px;
+  }
   .categoria {
     display: inline-block;
     font-size: 11px;
@@ -172,7 +195,16 @@
     background: rgba(0, 113, 227, .08);
     padding: 3px 9px;
     border-radius: 6px;
-    margin: 0 0 8px;
+    margin: 0;
+  }
+  .bateria {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--muted);
+    white-space: nowrap;
   }
   .nome {
     font-size: 17px;
@@ -265,10 +297,14 @@
     grid.innerHTML = lista.map((p, i) => `
       <div class="card" style="--atraso:${Math.min(i * 0.05, 0.4)}s">
         <div class="foto">
+          ${p.tudo_original ? `<span class="selo-original">✓ 100% Original</span>` : ''}
           ${p.fotos && p.fotos.length ? `<img src="${p.fotos[0]}" loading="lazy" alt="${p.nome}">` : `<span class="sem-foto">Sem foto</span>`}
         </div>
         <div class="info">
-          <p class="categoria">${p.categoria || ''}</p>
+          <div class="topo-info">
+            <p class="categoria">${p.categoria || ''}</p>
+            ${p.bateria_pct != null ? `<span class="bateria">🔋 ${p.bateria_pct}%</span>` : ''}
+          </div>
           <p class="nome">${p.nome}</p>
           ${p.condicao ? `<p class="condicao">${p.condicao}</p>` : ''}
           ${p.preco_anuncio != null ? `<p class="preco">${fmt(p.preco_anuncio)}</p>` : `<p class="preco consulte">Consulte o valor</p>`}

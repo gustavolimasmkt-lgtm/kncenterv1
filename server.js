@@ -84,6 +84,8 @@ db.exec(`
     nome TEXT NOT NULL,
     categoria TEXT DEFAULT 'Outro',
     condicao TEXT,
+    bateria_pct INTEGER,
+    tudo_original INTEGER DEFAULT 0,
     imei_serial TEXT,
     quantidade_total INTEGER NOT NULL DEFAULT 1,
     quantidade_vendida INTEGER NOT NULL DEFAULT 0,
@@ -186,6 +188,8 @@ for (const col of [
   "ALTER TABLE vendas ADD COLUMN lucro REAL",
   "ALTER TABLE vendas ADD COLUMN custo_transferido REAL DEFAULT 0",
   "ALTER TABLE vendas ADD COLUMN custo_transferido_split TEXT",
+  "ALTER TABLE produtos ADD COLUMN bateria_pct INTEGER",
+  "ALTER TABLE produtos ADD COLUMN tudo_original INTEGER DEFAULT 0",
 ]) {
   try { db.exec(col); } catch (e) { /* coluna ja existe, ignora */ }
 }
@@ -715,10 +719,12 @@ app.post('/api/produtos', (req, res) => {
       if (dup) return err(res, `IMEI/serial ja cadastrado no produto "${dup.nome}" (id ${dup.id}).`);
     }
     const sku = (b.sku && b.sku.trim()) || gerarSku(db);
+    const bateriaPct = (b.bateria_pct !== undefined && b.bateria_pct !== null && b.bateria_pct !== '')
+      ? Math.max(0, Math.min(100, parseInt(b.bateria_pct, 10))) : null;
     const r = db.prepare(`INSERT INTO produtos
-      (sku,nome,categoria,condicao,imei_serial,quantidade_total,custo_total,data_compra,preco_anuncio,lucro_minimo,status_manual,obs,criado_por)
-      VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)`)
-      .run(sku, b.nome, b.categoria || 'Outro', b.condicao || '', b.imei_serial || '', qtd,
+      (sku,nome,categoria,condicao,bateria_pct,tudo_original,imei_serial,quantidade_total,custo_total,data_compra,preco_anuncio,lucro_minimo,status_manual,obs,criado_por)
+      VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`)
+      .run(sku, b.nome, b.categoria || 'Outro', b.condicao || '', bateriaPct, b.tudo_original ? 1 : 0, b.imei_serial || '', qtd,
            Number(b.custo_total), b.data_compra || new Date().toISOString().slice(0, 10),
            b.preco_anuncio || null, b.lucro_minimo || null, b.status_manual || null, b.obs || '', req.user.id);
     const produtoId = r.lastInsertRowid;
@@ -745,9 +751,11 @@ app.put('/api/produtos/:id', (req, res) => {
       const dup = db.prepare('SELECT id, nome FROM produtos WHERE UPPER(imei_serial) = UPPER(?) AND id != ?').get(b.imei_serial.trim(), req.params.id);
       if (dup) return err(res, `IMEI/serial ja cadastrado no produto "${dup.nome}" (id ${dup.id}).`);
     }
-    db.prepare(`UPDATE produtos SET nome=?,categoria=?,condicao=?,imei_serial=?,quantidade_total=?,custo_total=?,
+    const bateriaPct = (b.bateria_pct !== undefined && b.bateria_pct !== null && b.bateria_pct !== '')
+      ? Math.max(0, Math.min(100, parseInt(b.bateria_pct, 10))) : null;
+    db.prepare(`UPDATE produtos SET nome=?,categoria=?,condicao=?,bateria_pct=?,tudo_original=?,imei_serial=?,quantidade_total=?,custo_total=?,
       data_compra=?,preco_anuncio=?,lucro_minimo=?,status_manual=?,obs=? WHERE id=?`)
-      .run(b.nome, b.categoria || 'Outro', b.condicao || '', b.imei_serial || '', qtd, Number(b.custo_total),
+      .run(b.nome, b.categoria || 'Outro', b.condicao || '', bateriaPct, b.tudo_original ? 1 : 0, b.imei_serial || '', qtd, Number(b.custo_total),
            b.data_compra || antes.data_compra, b.preco_anuncio || null, b.lucro_minimo || null,
            b.status_manual || null, b.obs || '', req.params.id);
     if (b.investimentos !== undefined) salvarInvestimentos(req.params.id, b.investimentos, Number(b.custo_total));
@@ -1205,7 +1213,7 @@ app.get('/api/dashboard/disponiveis', (_, res) => {
 // novo que outra rota venha a adicionar la no futuro sem querer.
 app.get('/publico/catalogo', (_, res) => {
   const produtos = db.prepare(`
-    SELECT id, nome, categoria, condicao, preco_anuncio, quantidade_total, quantidade_vendida
+    SELECT id, nome, categoria, condicao, bateria_pct, tudo_original, preco_anuncio, quantidade_total, quantidade_vendida
     FROM produtos ORDER BY criado_em DESC
   `).all().filter(p => (p.quantidade_total - p.quantidade_vendida) > 0);
   const fotosStmt = db.prepare('SELECT arquivo FROM produto_fotos WHERE produto_id=? ORDER BY criado_em');
@@ -1214,6 +1222,8 @@ app.get('/publico/catalogo', (_, res) => {
     nome: p.nome,
     categoria: p.categoria,
     condicao: p.condicao || '',
+    bateria_pct: p.bateria_pct != null ? p.bateria_pct : null,
+    tudo_original: !!p.tudo_original,
     preco_anuncio: p.preco_anuncio,
     fotos: fotosStmt.all(p.id).map(f => '/uploads/' + f.arquivo)
   })));

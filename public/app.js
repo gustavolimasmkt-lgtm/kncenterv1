@@ -574,6 +574,11 @@ async function abrirModalProduto(id) {
     conferirSomaInvestimentos();
     $('btn-excluir-produto').classList.remove('oculto');
 
+    $('prod-fotos-box').classList.remove('oculto');
+    $('prod-fotos-erro').textContent = '';
+    $('prod-fotos-input').value = '';
+    await carregarFotosProduto(id);
+
     $('prod-vendas-box').classList.remove('oculto');
     $('lista-vendas-produto').innerHTML = PRODUTO_EM_EDICAO_VENDAS.map(v => `
       <tr>
@@ -598,9 +603,41 @@ async function abrirModalProduto(id) {
     $('prod-data-compra').value = new Date().toISOString().slice(0, 10);
     atualizarInvestimentosUI();
     $('btn-excluir-produto').classList.add('oculto');
+    $('prod-fotos-box').classList.add('oculto');
     $('prod-vendas-box').classList.add('oculto');
   }
   $('modal-produto').classList.remove('oculto');
+}
+
+// ---------- Fotos do produto ----------
+async function carregarFotosProduto(produtoId) {
+  const fotos = await api('GET', `/api/produtos/${produtoId}/fotos`);
+  $('grid-fotos-produto').innerHTML = fotos.map(f => `
+    <div class="foto-miniatura">
+      <img src="/uploads/${f.arquivo}" loading="lazy">
+      <button type="button" onclick="excluirFotoProduto(${f.id}, ${produtoId})" title="Excluir foto">&times;</button>
+    </div>
+  `).join('');
+}
+
+async function enviarFotosProduto() {
+  $('prod-fotos-erro').textContent = '';
+  const produtoId = $('prod-id').value;
+  const input = $('prod-fotos-input');
+  if (!input.files.length) { $('prod-fotos-erro').textContent = 'Escolhe pelo menos uma foto.'; return; }
+  const fd = new FormData();
+  for (const f of input.files) fd.append('fotos', f);
+  try {
+    await api('POST', `/api/produtos/${produtoId}/fotos`, fd);
+    input.value = '';
+    await carregarFotosProduto(produtoId);
+  } catch (e) { $('prod-fotos-erro').textContent = e.message; }
+}
+
+async function excluirFotoProduto(fotoId, produtoId) {
+  if (!confirm('Excluir essa foto?')) return;
+  await api('DELETE', `/api/fotos/${fotoId}`);
+  await carregarFotosProduto(produtoId);
 }
 
 async function salvarProduto() {

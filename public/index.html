@@ -350,6 +350,18 @@
       </div>
       <label>Condição (bateria, tela, defeitos etc.)</label>
       <input id="prod-condicao" placeholder="Ex: Usado · 87% bateria">
+      <div class="linha">
+        <div>
+          <label>% de bateria (opcional)</label>
+          <input id="prod-bateria-pct" type="number" min="0" max="100" placeholder="Ex: 87">
+        </div>
+        <div>
+          <label class="check-linha" style="margin-top:22px">
+            <input type="checkbox" id="prod-tudo-original">
+            Tudo original (selo no catálogo)
+          </label>
+        </div>
+      </div>
       <label>IMEI / número de série (opcional, evita duplicidade)</label>
       <input id="prod-imei">
       <div class="linha">

@@ -13,6 +13,8 @@ const app = express();
 app.use(express.json());
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
+// link curto pra mandar pro cliente (sem .html) — mesma pagina publica do catalogo.
+app.get('/catalogo', (_, res) => res.sendFile(path.join(__dirname, 'public', 'catalogo.html')));
 
 const DB_PATH = process.env.DB_PATH || path.join(__dirname, 'data', 'knbrik.db');
 fs.mkdirSync(path.dirname(DB_PATH), { recursive: true });
@@ -1191,6 +1193,29 @@ app.get('/api/dashboard/disponiveis', (_, res) => {
     preco_anuncio: p.preco_anuncio, lucro_minimo: p.lucro_minimo,
     margem_anuncio: p.preco_anuncio != null ? p.preco_anuncio - p.custo_unitario : null,
     margem_minima: p.lucro_minimo
+  })));
+});
+
+// ---------- CATALOGO PUBLICO (sem login — link pra mandar pro cliente) ----------
+// Fora do prefixo /api de proposito, pra nunca cair sob o requireAuth (ver app.use('/api', ...)
+// mais abaixo) nem por engano numa edicao futura. So os campos seguros de mostrar pra fora: nome,
+// categoria, condicao, preco de anuncio e fotos. NUNCA custo, investimento por socio, lucro
+// minimo, IMEI/serial, observacoes internas ou quantidade exata em estoque — lista feita a mao
+// (SELECT explicito), nao reaproveita retratoProduto() de proposito, pra nao arriscar vazar campo
+// novo que outra rota venha a adicionar la no futuro sem querer.
+app.get('/publico/catalogo', (_, res) => {
+  const produtos = db.prepare(`
+    SELECT id, nome, categoria, condicao, preco_anuncio, quantidade_total, quantidade_vendida
+    FROM produtos ORDER BY criado_em DESC
+  `).all().filter(p => (p.quantidade_total - p.quantidade_vendida) > 0);
+  const fotosStmt = db.prepare('SELECT arquivo FROM produto_fotos WHERE produto_id=? ORDER BY criado_em');
+  ok(res, produtos.map(p => ({
+    id: p.id,
+    nome: p.nome,
+    categoria: p.categoria,
+    condicao: p.condicao || '',
+    preco_anuncio: p.preco_anuncio,
+    fotos: fotosStmt.all(p.id).map(f => '/uploads/' + f.arquivo)
   })));
 });
 

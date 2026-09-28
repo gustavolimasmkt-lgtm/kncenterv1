@@ -456,6 +456,14 @@ function investimentosDoProduto(produtoId) {
   `).all(produtoId);
 }
 
+// Lucro e sempre dividido em partes iguais entre os socios ATIVOS, nao importa quem pagou o
+// produto (isso e so o "investido", que volta pra quem colocou o dinheiro). Se o Gustavo pagou
+// 100% de um produto e o Kaua 0%, o lucro da venda ainda e metade pra cada — so o capital
+// investido que e assimetrico, o lucro nao.
+function sociosAtivos() {
+  return db.prepare('SELECT * FROM socios WHERE ativo=1 ORDER BY nome').all();
+}
+
 function vendasDoProduto(produtoId) {
   return db.prepare('SELECT * FROM vendas WHERE produto_id=? ORDER BY data_venda').all(produtoId);
 }
@@ -544,8 +552,8 @@ function classificarFarol(lucro, custo, ehTrocaSemDinheiro) {
 function retratoProduto(produto) {
   const investimentos = investimentosDoProduto(produto.id);
   const totalInvestido = investimentos.reduce((s, i) => s + i.valor, 0);
-  const socioIds = investimentos.map(i => i.socio_id);
-  const nSocios = socioIds.length || 1;
+  const socios = sociosAtivos();
+  const nSocios = socios.length || 1;
   const vendas = vendasDoProduto(produto.id);
 
   let lucroTotalRealizado = 0, arrecadadoTotal = 0, custoVendidoTotal = 0;
@@ -572,15 +580,26 @@ function retratoProduto(produto) {
   const lucroMaxEstimadoAberto = (produto.preco_anuncio != null)
     ? (produto.preco_anuncio - custoUnit) * Math.max(restante, 0) : null;
 
-  // retorno por socio = valor que ele investiu (proporcional ao que ja foi vendido) + sua fatia do lucro ja realizado
-  const porSocio = investimentos.map(inv => {
+  // retorno por socio = valor que ele investiu (proporcional ao que ja foi vendido) + sua fatia do
+  // lucro ja realizado. O investido e por quem pagou (pode ser 100% de um so); o lucro NAO — e
+  // sempre dividido em partes iguais entre os socios ativos, mesmo que so um deles tenha
+  // colocado dinheiro nesse produto especifico (ver sociosAtivos() acima).
+  const investidoPorSocio = Object.fromEntries(investimentos.map(i => [i.socio_id, i.valor]));
+  const idsParaMostrar = new Set([...socios.map(s => s.id), ...investimentos.map(i => i.socio_id)]);
+  const nomePorSocio = Object.fromEntries([
+    ...socios.map(s => [s.id, s.nome]),
+    ...investimentos.map(i => [i.socio_id, i.socio_nome])
+  ]);
+  const porSocio = [...idsParaMostrar].map(socioId => {
+    const investido = investidoPorSocio[socioId] || 0;
+    const ehAtivo = socios.some(s => s.id === socioId);
     const fracaoInvestidaVendida = produto.quantidade_total > 0
-      ? (inv.valor / produto.quantidade_total) * produto.quantidade_vendida : 0;
-    const lucroDoSocio = lucroTotalRealizado / nSocios;
+      ? (investido / produto.quantidade_total) * produto.quantidade_vendida : 0;
+    const lucroDoSocio = ehAtivo ? lucroTotalRealizado / nSocios : 0;
     return {
-      socio_id: inv.socio_id,
-      socio_nome: inv.socio_nome,
-      investido: inv.valor,
+      socio_id: socioId,
+      socio_nome: nomePorSocio[socioId],
+      investido,
       retorno: produto.quantidade_vendida > 0 ? fracaoInvestidaVendida + lucroDoSocio : 0,
       lucro: produto.quantidade_vendida > 0 ? lucroDoSocio : 0,
       em_aberto: restante > 0
@@ -1158,21 +1177,19 @@ app.get('/api/dashboard/resumo', (req, res) => {
 
   const porSocioMap = {};
   socios.forEach(s => porSocioMap[s.id] = { socio_id: s.id, socio_nome: s.nome, investido: 0, lucro: 0 });
+  const nSociosAtivos = socios.length || 1;
 
   let totalArrecadado = 0, lucroRealTotal = 0;
   produtos.forEach(p => {
     p.por_socio.forEach(linha => {
       if (porSocioMap[linha.socio_id]) porSocioMap[linha.socio_id].investido += linha.investido;
     });
-    const investimentos = investimentosDoProduto(p.id);
-    const nSocios = investimentos.length || 1;
     p.vendas.forEach(v => {
       if (!dentroPeriodo(v.data_venda)) return;
       totalArrecadado += v.valor_vendido;
       lucroRealTotal += v.lucro;
-      investimentos.forEach(inv => {
-        if (porSocioMap[inv.socio_id]) porSocioMap[inv.socio_id].lucro += v.lucro / nSocios;
-      });
+      // lucro sempre dividido igual entre os socios ativos, nao so entre quem investiu nesse produto
+      socios.forEach(s => { porSocioMap[s.id].lucro += v.lucro / nSociosAtivos; });
     });
   });
 
@@ -1249,26 +1266,21 @@ app.get('/api/dashboard/semanal', (_, res) => {
     db.prepare('SELECT semana, valor_por_socio FROM metas_semanais').all().map(m => [m.semana, m.valor_por_socio])
   );
 
+  const nSociosAtivos = socios.length || 1;
   const semanas = {};
   for (const v of vendas) {
     const produto = produtosPorId[v.produto_id];
     if (!produto) continue;
     const { chave, inicio, fim } = chaveSemana(v.data_venda);
     const { lucro } = lerVendaCongelada(v);
-    const investimentos = investimentosDoProduto(produto.id);
-    const nSocios = investimentos.length || 1;
     if (!semanas[chave]) {
       semanas[chave] = { inicio, fim, lucro_total: 0, por_socio: {} };
       socios.forEach(s => semanas[chave].por_socio[s.id] = { socio_nome: s.nome, lucro: 0 });
     }
     semanas[chave].lucro_total += lucro;
-    investimentos.forEach(inv => {
-      if (!semanas[chave].por_socio[inv.socio_id]) {
-        const s = socios.find(x => x.id === inv.socio_id);
-        semanas[chave].por_socio[inv.socio_id] = { socio_nome: s ? s.nome : '?', lucro: 0 };
-      }
-      semanas[chave].por_socio[inv.socio_id].lucro += lucro / nSocios;
-    });
+    // lucro sempre dividido igual entre os socios ativos, mesmo que o investimento desse
+    // produto tenha sido 100% de um so
+    socios.forEach(s => { semanas[chave].por_socio[s.id].lucro += lucro / nSociosAtivos; });
   }
 
   // semana com meta propria definida mas ainda sem nenhuma venda (ex: meta da semana que vem,
@@ -1303,27 +1315,22 @@ app.get('/api/dashboard/mensal', (_, res) => {
   const vendas = db.prepare('SELECT * FROM vendas ORDER BY data_venda').all();
   const socios = db.prepare('SELECT * FROM socios WHERE ativo=1 ORDER BY nome').all();
 
+  const nSociosAtivos = socios.length || 1;
   const meses = {};
   for (const v of vendas) {
     const produto = produtosPorId[v.produto_id];
     if (!produto) continue;
     const chave = v.data_venda.slice(0, 7); // YYYY-MM
     const { lucro } = lerVendaCongelada(v);
-    const investimentos = investimentosDoProduto(produto.id);
-    const nSocios = investimentos.length || 1;
     if (!meses[chave]) {
       meses[chave] = { lucro_total: 0, arrecadado: 0, por_socio: {} };
       socios.forEach(s => meses[chave].por_socio[s.id] = { socio_nome: s.nome, lucro: 0 });
     }
     meses[chave].lucro_total += lucro;
     meses[chave].arrecadado += v.valor_vendido;
-    investimentos.forEach(inv => {
-      if (!meses[chave].por_socio[inv.socio_id]) {
-        const s = socios.find(x => x.id === inv.socio_id);
-        meses[chave].por_socio[inv.socio_id] = { socio_nome: s ? s.nome : '?', lucro: 0 };
-      }
-      meses[chave].por_socio[inv.socio_id].lucro += lucro / nSocios;
-    });
+    // lucro sempre dividido igual entre os socios ativos, mesmo que o investimento desse
+    // produto tenha sido 100% de um so
+    socios.forEach(s => { meses[chave].por_socio[s.id].lucro += lucro / nSociosAtivos; });
   }
 
   const lista = Object.entries(meses).sort((a, b) => a[0].localeCompare(b[0])).map(([chave, m]) => ({

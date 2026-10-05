@@ -415,7 +415,7 @@ function renderProdutos() {
     <tr>
       <td><input type="checkbox" ${PRODUTOS_SELECIONADOS.has(p.id) ? 'checked' : ''} onchange="alternarSelecaoProduto(${p.id}, this.checked)"></td>
       <td>${p.sku || ''}</td>
-      <td>${p.nome}</td>
+      <td>${p.nome}${p.consignado ? ` <span class="tag">Consignado${p.parceiro_nome ? ' · ' + p.parceiro_nome : ''}</span>` : ''}</td>
       <td>${p.categoria}</td>
       <td>${p.quantidade_vendida}/${p.quantidade_total}</td>
       <td>${fmt(p.custo_unitario)}</td>
@@ -525,6 +525,15 @@ function atualizarInvestimentosUI() {
   conferirSomaInvestimentos();
 }
 
+// Consignado: esconde "quanto cada sócio pagou" (ninguém da KN pagou) e o campo de custo vira
+// o valor que volta pro parceiro quando vender. Lucro = venda − esse valor, dividido igual.
+function alternarConsignado() {
+  const c = $('prod-consignado').checked;
+  $('prod-parceiro-box').classList.toggle('oculto', !c);
+  $('investimentos-box').classList.toggle('oculto', c);
+  $('prod-custo-label').textContent = c ? 'Valor do parceiro — repasse por unidade vendida × qtd (R$)' : 'Custo total (R$)';
+}
+
 function conferirSomaInvestimentos() {
   const custo = Number($('prod-custo').value) || 0;
   let soma = 0;
@@ -560,6 +569,8 @@ async function abrirModalProduto(id) {
     $('prod-condicao').value = p.condicao || '';
     $('prod-bateria-pct').value = p.bateria_pct ?? '';
     $('prod-tudo-original').checked = !!p.tudo_original;
+    $('prod-consignado').checked = !!p.consignado;
+    $('prod-parceiro').value = p.parceiro_nome || '';
     $('prod-imei').value = p.imei_serial || '';
     $('prod-qtd').value = p.quantidade_total;
     $('prod-data-compra').value = p.data_compra || '';
@@ -574,6 +585,7 @@ async function abrirModalProduto(id) {
       if (inp) inp.value = inv.valor;
     });
     conferirSomaInvestimentos();
+    alternarConsignado();
     $('btn-excluir-produto').classList.remove('oculto');
 
     $('prod-fotos-box').classList.remove('oculto');
@@ -601,10 +613,13 @@ async function abrirModalProduto(id) {
     $('modal-produto-titulo').textContent = 'Novo produto';
     ['prod-nome','prod-sku','prod-condicao','prod-bateria-pct','prod-imei','prod-preco-anuncio','prod-lucro-minimo','prod-status-manual','prod-obs'].forEach(f => $(f).value = '');
     $('prod-tudo-original').checked = false;
+    $('prod-consignado').checked = false;
+    $('prod-parceiro').value = '';
     $('prod-qtd').value = 1;
     $('prod-custo').value = '';
     $('prod-data-compra').value = new Date().toISOString().slice(0, 10);
     atualizarInvestimentosUI();
+    alternarConsignado();
     $('btn-excluir-produto').classList.add('oculto');
     $('prod-fotos-box').classList.add('oculto');
     $('prod-vendas-box').classList.add('oculto');
@@ -653,6 +668,8 @@ async function salvarProduto() {
     condicao: $('prod-condicao').value,
     bateria_pct: $('prod-bateria-pct').value || null,
     tudo_original: $('prod-tudo-original').checked,
+    consignado: $('prod-consignado').checked,
+    parceiro_nome: $('prod-parceiro').value,
     imei_serial: $('prod-imei').value,
     quantidade_total: $('prod-qtd').value,
     data_compra: $('prod-data-compra').value,

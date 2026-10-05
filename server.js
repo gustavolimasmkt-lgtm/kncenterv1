@@ -86,6 +86,8 @@ db.exec(`
     condicao TEXT,
     bateria_pct INTEGER,
     tudo_original INTEGER DEFAULT 0,
+    consignado INTEGER DEFAULT 0,
+    parceiro_nome TEXT,
     imei_serial TEXT,
     quantidade_total INTEGER NOT NULL DEFAULT 1,
     quantidade_vendida INTEGER NOT NULL DEFAULT 0,
@@ -190,6 +192,8 @@ for (const col of [
   "ALTER TABLE vendas ADD COLUMN custo_transferido_split TEXT",
   "ALTER TABLE produtos ADD COLUMN bateria_pct INTEGER",
   "ALTER TABLE produtos ADD COLUMN tudo_original INTEGER DEFAULT 0",
+  "ALTER TABLE produtos ADD COLUMN consignado INTEGER DEFAULT 0",
+  "ALTER TABLE produtos ADD COLUMN parceiro_nome TEXT",
 ]) {
   try { db.exec(col); } catch (e) { /* coluna ja existe, ignora */ }
 }
@@ -714,8 +718,11 @@ function gerarSku(db) {
   return 'KNB' + String(n).padStart(3, '0');
 }
 
-function salvarInvestimentos(produtoId, investimentos, custoTotal) {
+function salvarInvestimentos(produtoId, investimentos, custoTotal, consignado) {
   db.prepare('DELETE FROM produto_investimentos WHERE produto_id=?').run(produtoId);
+  // Consignado: produto de parceiro, ninguem da KN investiu. custo_total e o valor a repassar
+  // pro parceiro quando vender (lucro = venda - repasse), entao nao tem investimento por socio.
+  if (consignado) return;
   const soma = (investimentos || []).reduce((s, i) => s + (Number(i.valor) || 0), 0);
   if (Math.abs(soma - custoTotal) > 0.01) {
     throw new Error(`A soma dos valores pagos por socio (R$${soma.toFixed(2)}) precisa bater com o custo total (R$${custoTotal.toFixed(2)}).`);
@@ -741,13 +748,14 @@ app.post('/api/produtos', (req, res) => {
     const bateriaPct = (b.bateria_pct !== undefined && b.bateria_pct !== null && b.bateria_pct !== '')
       ? Math.max(0, Math.min(100, parseInt(b.bateria_pct, 10))) : null;
     const r = db.prepare(`INSERT INTO produtos
-      (sku,nome,categoria,condicao,bateria_pct,tudo_original,imei_serial,quantidade_total,custo_total,data_compra,preco_anuncio,lucro_minimo,status_manual,obs,criado_por)
-      VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`)
-      .run(sku, b.nome, b.categoria || 'Outro', b.condicao || '', bateriaPct, b.tudo_original ? 1 : 0, b.imei_serial || '', qtd,
+      (sku,nome,categoria,condicao,bateria_pct,tudo_original,consignado,parceiro_nome,imei_serial,quantidade_total,custo_total,data_compra,preco_anuncio,lucro_minimo,status_manual,obs,criado_por)
+      VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`)
+      .run(sku, b.nome, b.categoria || 'Outro', b.condicao || '', bateriaPct, b.tudo_original ? 1 : 0,
+           b.consignado ? 1 : 0, b.consignado ? (b.parceiro_nome || '') : null, b.imei_serial || '', qtd,
            Number(b.custo_total), b.data_compra || new Date().toISOString().slice(0, 10),
            b.preco_anuncio || null, b.lucro_minimo || null, b.status_manual || null, b.obs || '', req.user.id);
     const produtoId = r.lastInsertRowid;
-    salvarInvestimentos(produtoId, b.investimentos, Number(b.custo_total));
+    salvarInvestimentos(produtoId, b.investimentos, Number(b.custo_total), !!b.consignado);
     const novo = db.prepare('SELECT * FROM produtos WHERE id=?').get(produtoId);
     db.prepare('INSERT INTO produtos_auditoria (produto_id,usuario_id,acao,dados_depois) VALUES (?,?,?,?)')
       .run(produtoId, req.user.id, 'criado', JSON.stringify(novo));
@@ -772,12 +780,13 @@ app.put('/api/produtos/:id', (req, res) => {
     }
     const bateriaPct = (b.bateria_pct !== undefined && b.bateria_pct !== null && b.bateria_pct !== '')
       ? Math.max(0, Math.min(100, parseInt(b.bateria_pct, 10))) : null;
-    db.prepare(`UPDATE produtos SET nome=?,categoria=?,condicao=?,bateria_pct=?,tudo_original=?,imei_serial=?,quantidade_total=?,custo_total=?,
+    db.prepare(`UPDATE produtos SET nome=?,categoria=?,condicao=?,bateria_pct=?,tudo_original=?,consignado=?,parceiro_nome=?,imei_serial=?,quantidade_total=?,custo_total=?,
       data_compra=?,preco_anuncio=?,lucro_minimo=?,status_manual=?,obs=? WHERE id=?`)
-      .run(b.nome, b.categoria || 'Outro', b.condicao || '', bateriaPct, b.tudo_original ? 1 : 0, b.imei_serial || '', qtd, Number(b.custo_total),
+      .run(b.nome, b.categoria || 'Outro', b.condicao || '', bateriaPct, b.tudo_original ? 1 : 0,
+           b.consignado ? 1 : 0, b.consignado ? (b.parceiro_nome || '') : null, b.imei_serial || '', qtd, Number(b.custo_total),
            b.data_compra || antes.data_compra, b.preco_anuncio || null, b.lucro_minimo || null,
            b.status_manual || null, b.obs || '', req.params.id);
-    if (b.investimentos !== undefined) salvarInvestimentos(req.params.id, b.investimentos, Number(b.custo_total));
+    if (b.investimentos !== undefined || b.consignado) salvarInvestimentos(req.params.id, b.investimentos, Number(b.custo_total), !!b.consignado);
     const depois = db.prepare('SELECT * FROM produtos WHERE id=?').get(req.params.id);
     db.prepare('INSERT INTO produtos_auditoria (produto_id,usuario_id,acao,dados_antes,dados_depois) VALUES (?,?,?,?,?)')
       .run(req.params.id, req.user.id, 'editado', JSON.stringify(antes), JSON.stringify(depois));

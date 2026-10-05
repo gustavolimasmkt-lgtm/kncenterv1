@@ -374,7 +374,15 @@
           <input id="prod-data-compra" type="date">
         </div>
       </div>
-      <label>Custo total (R$)</label>
+      <label class="check-linha">
+        <input type="checkbox" id="prod-consignado" onchange="alternarConsignado()">
+        Consignado (produto de parceiro — não investimos, só tiramos lucro)
+      </label>
+      <div id="prod-parceiro-box" class="oculto">
+        <label>Nome do parceiro (dono do produto)</label>
+        <input id="prod-parceiro" placeholder="Ex: João">
+      </div>
+      <label id="prod-custo-label">Custo total (R$)</label>
       <input id="prod-custo" type="number" step="0.01" oninput="atualizarInvestimentosUI()">
       <div id="investimentos-box"></div>
       <div class="linha">
